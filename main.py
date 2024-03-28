@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 from pygame.sprite import Sprite, Group
+import math
 
 pygame.init()
 
@@ -15,12 +16,15 @@ dark_square_color = '#EEEFD4'
 
 # Draw Squares
 square_list = [[None for _ in range(8)] for _ in range(8)]
-pieces_list = [[None for _ in range(8)] for _ in range(8)]
+pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
+square_centers = []
+pieces_list = []
 
 for i in range(8):
     for j in range(8):
         square_surf = pygame.Surface((square_size, square_size))
         square_rect = square_surf.get_rect(topleft = (i * square_size, j * square_size))
+        square_centers.append(square_rect.center)
         if ((i % 2 == 0 and j % 2 == 0) or (i % 2 == 1 and j % 2 == 1)):
             square_surf.fill(light_square_color)
         else:
@@ -30,11 +34,14 @@ for i in range(8):
 
 
 class Piece:
+    picked = None
+
     def __init__(self, image_location, position):
         self.surf = pygame.image.load(image_location).convert_alpha()
         self.rect = self.surf.get_rect(topleft=(position[0] * square_size, position[1] * square_size))
         self.position = position
-        pieces_list[position[0]][position[1]] = self
+        pieces_pos_list[position[0]][position[1]] = self
+        pieces_list.append(self)
 
 
 # Initializing Chess Pieces with default positions
@@ -73,14 +80,27 @@ b_pawn7 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (6, 1))
 b_pawn8 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (7, 1))
 
 
+def closest_point(point, points):
+    min_distance = float('inf')
+    closest = None
+    
+    for p in points:
+        distance = math.sqrt((point[0] - p[0])**2 + (point[1] - p[1])**2)
+        if distance < min_distance:
+            min_distance = distance
+            closest = p
+    
+    return closest
+
+
 def draw_board():
     for i in range(8):
         for j in range(8):
             square = square_list[i][j]
             screen.blit(square[0], square[1])
-            
-            piece = pieces_list[i][j]
-            if piece != None : screen.blit(piece.surf, piece.rect)
+
+    for piece in pieces_list:
+        screen.blit(piece.surf, piece.rect)
 
 
 clock = pygame.time.Clock()
@@ -90,6 +110,24 @@ while running:
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
+        
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                for piece in pieces_list:
+                    if piece.rect.collidepoint(event.pos): 
+                        Piece.picked = piece
+                        pieces_list.remove(piece)
+                        pieces_list.append(piece)
+                        break
+            
+        if event.type == MOUSEMOTION:
+            if Piece.picked:
+                Piece.picked.rect.center = event.pos
+
+        if event.type == MOUSEBUTTONUP:
+            if Piece.picked:
+                Piece.picked.rect.center = closest_point(Piece.picked.rect.center, square_centers)
+                Piece.picked = None
 
     screen.fill('gray')
 
