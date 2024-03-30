@@ -14,24 +14,49 @@ screen = pygame.display.set_mode((width, height))
 light_square_color = '#7D955C'
 dark_square_color = '#EEEFD4'
 
-# Draw Squares
-square_list = [[None for _ in range(8)] for _ in range(8)]
-pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
-square_centers = []
-pieces_list = []
 
-for i in range(8):
-    for j in range(8):
-        square_surf = pygame.Surface((square_size, square_size))
-        square_rect = square_surf.get_rect(topleft = (i * square_size, j * square_size))
-        square_centers.append(square_rect.center)
-        if ((i % 2 == 0 and j % 2 == 0) or (i % 2 == 1 and j % 2 == 1)):
-            square_surf.fill(light_square_color)
-        else:
-            square_surf.fill(dark_square_color)
+class Board:
+    def __init__(self):
+        self.square_list = [[None for _ in range(8)] for _ in range(8)]
+        self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
+        self.square_centers = []
+        self.pieces_list = []
+        self.initialise_board()
 
-        square_list[i][j] = (square_surf, square_rect)
+    def initialise_board(self):
+        for i in range(8):
+            for j in range(8):
+                square_surf = pygame.Surface((square_size, square_size))
+                square_rect = square_surf.get_rect(topleft = (i * square_size, j * square_size))
+                self.square_centers.append(square_rect.center)
+                if ((i % 2 == 0 and j % 2 == 0) or (i % 2 == 1 and j % 2 == 1)):
+                    square_surf.fill(light_square_color)
+                else:
+                    square_surf.fill(dark_square_color)
 
+                self.square_list[i][j] = (square_surf, square_rect)
+
+    def closest_point(self, point, points):
+        min_distance = float('inf')
+        closest = None
+        
+        for p in points:
+            distance = math.sqrt((point[0] - p[0])**2 + (point[1] - p[1])**2)
+            if distance < min_distance:
+                min_distance = distance
+                closest = p
+        
+        return closest
+
+    def draw_board(self):
+        for i in range(8):
+            for j in range(8):
+                square = self.square_list[i][j]
+                screen.blit(square[0], square[1])
+
+        for piece in self.pieces_list:
+            piece.display()
+    
 
 class Piece:
     picked = None
@@ -40,8 +65,8 @@ class Piece:
         self.surf = pygame.image.load(image_location).convert_alpha()
         self.rect = self.surf.get_rect(topleft=(position[0] * square_size, position[1] * square_size))
         self.position = position
-        pieces_pos_list[position[0]][position[1]] = self
-        pieces_list.append(self)
+        board.pieces_pos_list[position[0]][position[1]] = self
+        board.pieces_list.append(self)
 
     def set_position(self):
         if self.position:
@@ -53,7 +78,8 @@ class Piece:
         screen.blit(self.surf, self.rect)
 
 
-# Initializing Chess Pieces with default positions
+# Initializing Board and Chess Pieces with default positions
+board = Board()
 w_king = Piece('Chess/graphics/Chess-pieces/white-king.png', (4, 7))
 w_queen = Piece('Chess/graphics/Chess-pieces/white-queen.png', (3, 7))
 w_rook1 = Piece('Chess/graphics/Chess-pieces/white-rook.png', (0, 7))
@@ -88,30 +114,6 @@ b_pawn6 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (5, 1))
 b_pawn7 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (6, 1))
 b_pawn8 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (7, 1))
 
-
-def closest_point(point, points):
-    min_distance = float('inf')
-    closest = None
-    
-    for p in points:
-        distance = math.sqrt((point[0] - p[0])**2 + (point[1] - p[1])**2)
-        if distance < min_distance:
-            min_distance = distance
-            closest = p
-    
-    return closest
-
-
-def draw_board():
-    for i in range(8):
-        for j in range(8):
-            square = square_list[i][j]
-            screen.blit(square[0], square[1])
-
-    for piece in pieces_list:
-        piece.display()
-
-
 clock = pygame.time.Clock()
 running = True
 
@@ -122,11 +124,11 @@ while running:
         
         if event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
-                for piece in pieces_list:
+                for piece in board.pieces_list:
                     if piece.rect.collidepoint(event.pos): 
                         Piece.picked = piece
-                        pieces_list.remove(piece)
-                        pieces_list.append(piece)
+                        board.pieces_list.remove(piece)
+                        board.pieces_list.append(piece)
                         break
             
         if event.type == MOUSEMOTION:
@@ -135,12 +137,12 @@ while running:
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked:
-                Piece.picked.rect.center = closest_point(Piece.picked.rect.center, square_centers)
+                Piece.picked.rect.center = board.closest_point(Piece.picked.rect.center, board.square_centers)
                 Piece.picked = None
 
     screen.fill('gray')
 
-    draw_board()
+    board.draw_board()
 
     clock.tick(60)
     pygame.display.update()
