@@ -43,6 +43,15 @@ class Piece:
         pieces_pos_list[position[0]][position[1]] = self
         pieces_list.append(self)
 
+    def set_position(self):
+        if self.position:
+            self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
+        else:
+            self.rect.topleft = (-500, -500)
+
+    def display(self):
+        screen.blit(self.surf, self.rect)
+
 
 # Initializing Chess Pieces with default positions
 w_king = Piece('Chess/graphics/Chess-pieces/white-king.png', (4, 7))
@@ -100,7 +109,7 @@ def draw_board():
             screen.blit(square[0], square[1])
 
     for piece in pieces_list:
-        screen.blit(piece.surf, piece.rect)
+        piece.display()
 
 
 clock = pygame.time.Clock()
