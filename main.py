@@ -67,10 +67,12 @@ class Piece:
         self.position = position
         board.pieces_pos_list[position[0]][position[1]] = self
         board.pieces_list.append(self)
+        self.set_position()
 
     def set_position(self):
         if self.position:
             self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
+            self.rect.center = board.closest_point(self.rect.center, board.square_centers)
         else:
             self.rect.topleft = (-500, -500)
 
@@ -138,6 +140,12 @@ while running:
         if event.type == MOUSEBUTTONUP:
             if Piece.picked:
                 Piece.picked.rect.center = board.closest_point(Piece.picked.rect.center, board.square_centers)
+                for piece in board.pieces_list:
+                    if piece != Piece.picked and piece.rect.center == Piece.picked.rect.center:
+                        piece.position = None
+                        piece.set_position()
+                        break
+
                 Piece.picked = None
 
     screen.fill('gray')
