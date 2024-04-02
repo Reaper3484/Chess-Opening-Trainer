@@ -116,6 +116,149 @@ b_pawn6 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (5, 1))
 b_pawn7 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (6, 1))
 b_pawn8 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (7, 1))
 
+
+def import_fen(fen_string):
+    rank = 0
+    file = 0
+    repeat = {
+        'r': 0,
+        'n': 0,
+        'b': 0,
+        'p': 0,
+        'R': 0,
+        'N': 0,
+        'B': 0,
+        'P': 0,
+    }
+
+    for piece in board.pieces_list:
+        piece.position = None
+
+    for c in fen_string:
+        if (c.isnumeric() and 1 < int(c) < 9):
+            file += int(c)
+            continue
+
+        elif (c == '/'):
+            file = 0
+            rank += 1
+            continue
+
+        match c:
+            case 'r':
+                if (repeat[c] == 0):
+                    b_rook1.position = (file, rank)
+                    repeat[c] = 1
+                else:
+                    b_rook2.position = (file, rank)
+            
+            case 'n':
+                if (repeat[c] == 0):
+                    b_knight1.position = (file, rank)
+                    repeat[c] = 1
+                else:
+                    b_knight2.position = (file, rank)
+
+            case 'b':
+                if (repeat[c] == 0):
+                    b_bishop1.position = (file, rank)
+                    repeat[c] = 1
+                else:
+                    b_bishop2.position = (file, rank)
+            
+            case 'q':
+                b_queen.position = (file, rank)
+
+            case 'k':
+                b_king.position = (file, rank)
+
+            case 'p':
+                if (repeat[c] == 0):
+                    b_pawn1.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 1):
+                    b_pawn2.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 2):
+                    b_pawn3.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 3):
+                    b_pawn4.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 4):
+                    b_pawn5.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 5):
+                    b_pawn6.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 6):
+                    b_pawn7.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 7):
+                    b_pawn8.position = (file, rank)
+                    repeat[c] += 1
+            
+            case 'R':
+                if (repeat[c] == 0):
+                    w_rook1.position = (file, rank)
+                    repeat[c] = 1
+                else:
+                    w_rook2.position = (file, rank)
+
+            case 'N':
+                if (repeat[c] == 0):
+                    w_knight1.position = (file, rank)
+                    repeat[c] = 1
+                else:
+                    w_knight2.position = (file, rank)
+
+            case 'B':
+                if (repeat[c] == 0):
+                    w_bishop1.position = (file, rank)
+                    repeat[c] = 1
+                else:
+                    w_bishop2.position = (file, rank)
+            
+            case 'Q':
+                w_queen.position = (file, rank)
+
+            case 'K':
+                w_king.position = (file, rank)
+
+            case 'P':
+                if (repeat[c] == 0):
+                    w_pawn1.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 1):
+                    w_pawn2.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 2):
+                    w_pawn3.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 3):
+                    w_pawn4.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 4):
+                    w_pawn5.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 5):
+                    w_pawn6.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 6):
+                    w_pawn7.position = (file, rank)
+                    repeat[c] += 1
+                elif (repeat[c] == 7):
+                    w_pawn8.position = (file, rank)
+                    repeat[c] += 1
+        
+        file += 1
+
+    for piece in board.pieces_list:
+        piece.set_position()
+
+
+import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
+
 clock = pygame.time.Clock()
 running = True
 
