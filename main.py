@@ -67,9 +67,10 @@ class Piece:
         self.position = position
         board.pieces_pos_list[position[0]][position[1]] = self
         board.pieces_list.append(self)
-        self.set_position()
+        self.update_position(self.position)
 
-    def set_position(self):
+    def update_position(self, position):
+        self.position = position
         if self.position:
             self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
             self.rect.center = board.closest_point(self.rect.center, board.square_centers)
@@ -132,7 +133,7 @@ def import_fen(fen_string):
     }
 
     for piece in board.pieces_list:
-        piece.position = None
+        piece.update_position(None) 
 
     for c in fen_string:
         if (c.isnumeric() and 1 < int(c) < 9):
@@ -147,114 +148,111 @@ def import_fen(fen_string):
         match c:
             case 'r':
                 if (repeat[c] == 0):
-                    b_rook1.position = (file, rank)
+                    b_rook1.update_position((file, rank))
                     repeat[c] = 1
                 else:
-                    b_rook2.position = (file, rank)
+                    b_rook2.update_position((file, rank))
             
             case 'n':
                 if (repeat[c] == 0):
-                    b_knight1.position = (file, rank)
+                    b_knight1.update_position((file, rank))
                     repeat[c] = 1
                 else:
-                    b_knight2.position = (file, rank)
+                    b_knight2.update_position((file, rank))
 
             case 'b':
                 if (repeat[c] == 0):
-                    b_bishop1.position = (file, rank)
+                    b_bishop1.update_position((file, rank))
                     repeat[c] = 1
                 else:
-                    b_bishop2.position = (file, rank)
+                    b_bishop2.update_position((file, rank))
             
             case 'q':
-                b_queen.position = (file, rank)
+                b_queen.update_position((file, rank))
 
             case 'k':
-                b_king.position = (file, rank)
+                b_king.update_position((file, rank))
 
             case 'p':
                 if (repeat[c] == 0):
-                    b_pawn1.position = (file, rank)
+                    b_pawn1.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 1):
-                    b_pawn2.position = (file, rank)
+                    b_pawn2.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 2):
-                    b_pawn3.position = (file, rank)
+                    b_pawn3.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 3):
-                    b_pawn4.position = (file, rank)
+                    b_pawn4.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 4):
-                    b_pawn5.position = (file, rank)
+                    b_pawn5.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 5):
-                    b_pawn6.position = (file, rank)
+                    b_pawn6.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 6):
-                    b_pawn7.position = (file, rank)
+                    b_pawn7.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 7):
-                    b_pawn8.position = (file, rank)
+                    b_pawn8.update_position((file, rank))
                     repeat[c] += 1
             
             case 'R':
                 if (repeat[c] == 0):
-                    w_rook1.position = (file, rank)
+                    w_rook1.update_position((file, rank))
                     repeat[c] = 1
                 else:
-                    w_rook2.position = (file, rank)
+                    w_rook2.update_position((file, rank))
 
             case 'N':
                 if (repeat[c] == 0):
-                    w_knight1.position = (file, rank)
+                    w_knight1.update_position((file, rank))
                     repeat[c] = 1
                 else:
-                    w_knight2.position = (file, rank)
+                    w_knight2.update_position((file, rank))
 
             case 'B':
                 if (repeat[c] == 0):
-                    w_bishop1.position = (file, rank)
+                    w_bishop1.update_position((file, rank))
                     repeat[c] = 1
                 else:
-                    w_bishop2.position = (file, rank)
+                    w_bishop2.update_position((file, rank))
             
             case 'Q':
-                w_queen.position = (file, rank)
+                w_queen.update_position((file, rank))
 
             case 'K':
-                w_king.position = (file, rank)
+                w_king.update_position((file, rank))
 
             case 'P':
                 if (repeat[c] == 0):
-                    w_pawn1.position = (file, rank)
+                    w_pawn1.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 1):
-                    w_pawn2.position = (file, rank)
+                    w_pawn2.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 2):
-                    w_pawn3.position = (file, rank)
+                    w_pawn3.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 3):
-                    w_pawn4.position = (file, rank)
+                    w_pawn4.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 4):
-                    w_pawn5.position = (file, rank)
+                    w_pawn5.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 5):
-                    w_pawn6.position = (file, rank)
+                    w_pawn6.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 6):
-                    w_pawn7.position = (file, rank)
+                    w_pawn7.update_position((file, rank))
                     repeat[c] += 1
                 elif (repeat[c] == 7):
-                    w_pawn8.position = (file, rank)
+                    w_pawn8.update_position((file, rank))
                     repeat[c] += 1
         
         file += 1
-
-    for piece in board.pieces_list:
-        piece.set_position()
 
 
 import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
@@ -282,11 +280,11 @@ while running:
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked:
-                Piece.picked.rect.center = board.closest_point(Piece.picked.rect.center, board.square_centers)
+                index = board.square_centers.index(board.closest_point(Piece.picked.rect.center, board.square_centers))
+                Piece.picked.update_position((index // 8, index % 8))
                 for piece in board.pieces_list:
                     if piece != Piece.picked and piece.rect.center == Piece.picked.rect.center:
-                        piece.position = None
-                        piece.set_position()
+                        piece.update_position(None)
                         break
 
                 Piece.picked = None
