@@ -259,6 +259,19 @@ def import_fen(fen_string):
         file += 1
 
 
+def generate_fen():
+    fen = ''
+
+    for rank in range(8):
+        empty_squares = 0
+        for file in range(8):
+            if any(piece.get_position() == (file, rank) for piece in board.pieces_list):
+                fen.join[(piece.id)]
+                empty_squares = 0
+            else:
+                empty_squares += 1
+
+
 import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
 
 clock = pygame.time.Clock()
