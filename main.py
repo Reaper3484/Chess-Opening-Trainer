@@ -78,7 +78,7 @@ class Piece:
         else:
             self.rect.topleft = (-500, -500)
 
-    def get_postion(self):
+    def get_position(self):
         return self.position
 
     def display(self):
@@ -265,11 +265,24 @@ def generate_fen():
     for rank in range(8):
         empty_squares = 0
         for file in range(8):
-            if any(piece.get_position() == (file, rank) for piece in board.pieces_list):
-                fen.join[(piece.id)]
-                empty_squares = 0
-            else:
+            found = False
+            for piece in board.pieces_list:
+                if piece.position == (file, rank):
+                    if empty_squares:
+                        fen += str(empty_squares)
+                    fen += piece.id
+                    empty_squares = 0
+                    found = True
+                    break
+            if not found:
                 empty_squares += 1
+
+        if empty_squares:
+            fen += str(empty_squares) + '/'
+        else:
+            fen += '/'
+
+    return fen
 
 
 import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
@@ -305,6 +318,9 @@ while running:
                         break
 
                 Piece.picked = None
+            
+                fen = generate_fen()
+                print(fen)
 
     screen.fill('gray')
 
