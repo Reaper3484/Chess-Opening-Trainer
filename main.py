@@ -300,33 +300,7 @@ def generate_fen():
     return fen
 
 
-def generate_fen():
-    fen = ''
-
-    for rank in range(8):
-        empty_squares = 0
-        for file in range(8):
-            found = False
-            for piece in board.pieces_list:
-                if piece.position == (file, rank):
-                    if empty_squares:
-                        fen += str(empty_squares)
-                    fen += piece.id
-                    empty_squares = 0
-                    found = True
-                    break
-            if not found:
-                empty_squares += 1
-
-        if empty_squares:
-            fen += str(empty_squares) + '/'
-        else:
-            fen += '/'
-
-    return fen
-
-
-import_fen('rnbqkbnr/pppppppp//////RNBQKBNR')
+import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
 
 clock = pygame.time.Clock()
 running = True
