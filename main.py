@@ -6,7 +6,7 @@ import math
 pygame.init()
 
 square_size = 127
-width = square_size * 8
+width = square_size * 8 + (square_size * 4)
 height = square_size * 8
 
 screen = pygame.display.set_mode((width, height))
@@ -85,8 +85,23 @@ class Piece:
         screen.blit(self.surf, self.rect)
 
 
+class UI:
+    def __init__(self):
+        self.image = pygame.image.load('Chess/graphics/flip_icon.png').convert_alpha()
+        self.flip_button_surf = pygame.transform.scale(self.image, (square_size - 20, square_size - 20))
+        self.flip_button_rect = self.flip_button_surf.get_rect(topleft=(9 * square_size, 6 * square_size + square_size/16))
+
+    def draw(self):
+        pygame.draw.rect(screen, 'white', self.flip_button_rect, border_radius=30)
+        screen.blit(self.flip_button_surf, self.flip_button_rect)
+
+    def flip(self):
+        pass 
+
+
 # Initializing Board and Chess Pieces with default positions
 board = Board()
+ui = UI()
 w_king = Piece('Chess/graphics/Chess-pieces/white-king.png', (4, 7), 'K')
 w_queen = Piece('Chess/graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
 w_rook1 = Piece('Chess/graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
@@ -285,7 +300,33 @@ def generate_fen():
     return fen
 
 
-import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
+def generate_fen():
+    fen = ''
+
+    for rank in range(8):
+        empty_squares = 0
+        for file in range(8):
+            found = False
+            for piece in board.pieces_list:
+                if piece.position == (file, rank):
+                    if empty_squares:
+                        fen += str(empty_squares)
+                    fen += piece.id
+                    empty_squares = 0
+                    found = True
+                    break
+            if not found:
+                empty_squares += 1
+
+        if empty_squares:
+            fen += str(empty_squares) + '/'
+        else:
+            fen += '/'
+
+    return fen
+
+
+import_fen('rnbqkbnr/pppppppp//////RNBQKBNR')
 
 clock = pygame.time.Clock()
 running = True
@@ -318,13 +359,14 @@ while running:
                         break
 
                 Piece.picked = None
-            
+
                 fen = generate_fen()
                 print(fen)
 
-    screen.fill('gray')
+    screen.fill('#272521')
 
     board.draw_board()
+    ui.draw()
 
     clock.tick(60)
     pygame.display.update()
