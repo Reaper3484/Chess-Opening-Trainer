@@ -96,7 +96,11 @@ class UI:
         screen.blit(self.flip_button_surf, self.flip_button_rect)
 
     def flip(self):
-        pass 
+        fen = ''
+        for c in generate_fen()[:-1]:
+            fen = c + fen
+        
+        import_fen(fen)
 
 
 # Initializing Board and Chess Pieces with default positions
@@ -318,6 +322,9 @@ while running:
                         board.pieces_list.remove(piece)
                         board.pieces_list.append(piece)
                         break
+
+                if ui.flip_button_rect.collidepoint(event.pos):
+                    ui.flip()
             
         if event.type == MOUSEMOTION:
             if Piece.picked:
@@ -333,9 +340,6 @@ while running:
                         break
 
                 Piece.picked = None
-
-                fen = generate_fen()
-                print(fen)
 
     screen.fill('#272521')
 
