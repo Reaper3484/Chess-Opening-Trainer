@@ -6,7 +6,7 @@ import math
 pygame.init()
 
 square_size = 127
-width = square_size * 8
+width = square_size * 8 + (square_size * 4)
 height = square_size * 8
 
 screen = pygame.display.set_mode((width, height))
@@ -65,28 +65,43 @@ class Piece:
         self.surf = pygame.image.load(image_location).convert_alpha()
         self.rect = self.surf.get_rect(topleft=(position[0] * square_size, position[1] * square_size))
         self.id = id
-        self.position = position
+        self.visible_position = position
         board.pieces_pos_list[position[0]][position[1]] = self
         board.pieces_list.append(self)
-        self.update_position(self.position)
+        self.update_position(self.visible_position)
 
     def update_position(self, position):
-        self.position = position
-        if self.position:
-            self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
+        self.visible_position = position
+        if self.visible_position:
+            self.rect.topleft = (self.visible_position[0] * square_size, self.visible_position[1] * square_size)
             self.rect.center = board.closest_point(self.rect.center, board.square_centers)
         else:
             self.rect.topleft = (-500, -500)
 
     def get_postion(self):
-        return self.position
+        return self.visible_position
 
     def display(self):
         screen.blit(self.surf, self.rect)
 
 
+class UI:
+    def __init__(self):
+        self.image = pygame.image.load('Chess/graphics/flip_icon.png').convert_alpha()
+        self.flip_button_surf = pygame.transform.scale(self.image, (square_size - 20, square_size - 20))
+        self.flip_button_rect = self.flip_button_surf.get_rect(topleft=(9 * square_size, 6 * square_size + square_size/16))
+
+    def draw(self):
+        pygame.draw.rect(screen, 'white', self.flip_button_rect, border_radius=30)
+        screen.blit(self.flip_button_surf, self.flip_button_rect)
+
+    def flip(self):
+        pass 
+
+
 # Initializing Board and Chess Pieces with default positions
 board = Board()
+ui = UI()
 w_king = Piece('Chess/graphics/Chess-pieces/white-king.png', (4, 7), 'K')
 w_queen = Piece('Chess/graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
 w_rook1 = Piece('Chess/graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
@@ -293,9 +308,10 @@ while running:
 
                 Piece.picked = None
 
-    screen.fill('gray')
+    screen.fill('#272521')
 
     board.draw_board()
+    ui.draw()
 
     clock.tick(60)
     pygame.display.update()
