@@ -21,6 +21,8 @@ class Board:
         self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
         self.square_centers = []
         self.pieces_list = []
+        self.moves_list = []
+        self.move_number = 0
         self.initialise_board()
 
     def initialise_board(self):
@@ -101,6 +103,14 @@ class UI:
             fen = c + fen
         
         import_fen(fen)
+
+
+class AI:
+    def __init__(self):
+        pass
+
+    def move(self):
+        pass
 
 
 # Initializing Board and Chess Pieces with default positions
@@ -305,6 +315,7 @@ def generate_fen():
 
 
 import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
+board.moves_list.append(generate_fen())
 
 clock = pygame.time.Clock()
 running = True
@@ -340,6 +351,25 @@ while running:
                         break
 
                 Piece.picked = None
+                board.moves_list.append(generate_fen())
+                board.move_number += 1
+
+        if event.type == KEYDOWN:
+            if event.key == K_LEFT:
+                if board.move_number > 0:
+                    board.move_number -= 1
+                    import_fen(board.moves_list[board.move_number])
+
+            if event.key == K_RIGHT:
+                if len(board.moves_list) > board.move_number + 1:
+                    board.move_number += 1
+                    import_fen(board.moves_list[board.move_number])
+            
+            if event.key == K_z:
+                if board.move_number == len(board.moves_list) - 1 and board.move_number:
+                    board.moves_list.pop()
+                    board.move_number -= 1
+                    import_fen(board.moves_list[board.move_number])
 
     screen.fill('#272521')
 
