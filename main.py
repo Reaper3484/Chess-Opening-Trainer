@@ -14,6 +14,8 @@ screen = pygame.display.set_mode((width, height))
 light_square_color = '#7D955C'
 dark_square_color = '#EEEFD4'
 
+move_order = ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/', 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR/', 'rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR/', 'rnbqkbnr/ppp1pppp/8/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/', 'rnbqkb1r/ppp1pppp/5n2/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/', 'rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppp1pppp/2n2n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppp1pppp/2n2n2/1N1p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppp2ppp/2n1pn2/1N1p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppN2ppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'r1bq1b1r/ppN1kppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'N1bq1b1r/pp2kppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'N2q1b1r/pp1bkppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'N2q1b1r/pp1bkppp/2n1pn2/3p4/3P1B2/4P3/PPP2PPP/R2QKBNR/']
+
 
 class Board:
     def __init__(self):
@@ -23,6 +25,7 @@ class Board:
         self.pieces_list = []
         self.moves_list = []
         self.move_number = 0
+        self.can_move = True
         self.initialise_board()
 
     def initialise_board(self):
@@ -89,7 +92,7 @@ class Piece:
 
 class UI:
     def __init__(self):
-        self.image = pygame.image.load('Chess/graphics/flip_icon.png').convert_alpha()
+        self.image = pygame.image.load('graphics/flip_icon.png').convert_alpha()
         self.flip_button_surf = pygame.transform.scale(self.image, (square_size - 20, square_size - 20))
         self.flip_button_rect = self.flip_button_surf.get_rect(topleft=(9 * square_size, 6 * square_size + square_size/16))
 
@@ -107,48 +110,53 @@ class UI:
 
 class AI:
     def __init__(self):
-        pass
+        pass 
 
     def move(self):
-        pass
-
-
+        if board.move_number % 2:
+            board.move_number += 1
+            fen = move_order[board.move_number]
+            import_fen(fen)
+            board.moves_list.append(fen)
+            
+            
 # Initializing Board and Chess Pieces with default positions
 board = Board()
 ui = UI()
-w_king = Piece('Chess/graphics/Chess-pieces/white-king.png', (4, 7), 'K')
-w_queen = Piece('Chess/graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
-w_rook1 = Piece('Chess/graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
-w_bishop1 = Piece('Chess/graphics/Chess-pieces/white-bishop.png', (2, 7), 'B')
-w_knight1 = Piece('Chess/graphics/Chess-pieces/white-knight.png', (1, 7), 'N')
-w_rook2 = Piece('Chess/graphics/Chess-pieces/white-rook.png', (7, 7), 'R')
-w_bishop2 = Piece('Chess/graphics/Chess-pieces/white-bishop.png', (5, 7), 'B')
-w_knight2 = Piece('Chess/graphics/Chess-pieces/white-knight.png', (6, 7), 'N')
-w_pawn1 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (0, 6), 'P')
-w_pawn2 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (1, 6), 'P')
-w_pawn3 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (2, 6), 'P')
-w_pawn4 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (3, 6), 'P')
-w_pawn5 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (4, 6), 'P')
-w_pawn6 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (5, 6), 'P')
-w_pawn7 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (6, 6), 'P')
-w_pawn8 = Piece('Chess/graphics/Chess-pieces/white-pawn.png', (7, 6), 'P')
+ai = AI()
+w_king = Piece('graphics/Chess-pieces/white-king.png', (4, 7), 'K')
+w_queen = Piece('graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
+w_rook1 = Piece('graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
+w_bishop1 = Piece('graphics/Chess-pieces/white-bishop.png', (2, 7), 'B')
+w_knight1 = Piece('graphics/Chess-pieces/white-knight.png', (1, 7), 'N')
+w_rook2 = Piece('graphics/Chess-pieces/white-rook.png', (7, 7), 'R')
+w_bishop2 = Piece('graphics/Chess-pieces/white-bishop.png', (5, 7), 'B')
+w_knight2 = Piece('graphics/Chess-pieces/white-knight.png', (6, 7), 'N')
+w_pawn1 = Piece('graphics/Chess-pieces/white-pawn.png', (0, 6), 'P')
+w_pawn2 = Piece('graphics/Chess-pieces/white-pawn.png', (1, 6), 'P')
+w_pawn3 = Piece('graphics/Chess-pieces/white-pawn.png', (2, 6), 'P')
+w_pawn4 = Piece('graphics/Chess-pieces/white-pawn.png', (3, 6), 'P')
+w_pawn5 = Piece('graphics/Chess-pieces/white-pawn.png', (4, 6), 'P')
+w_pawn6 = Piece('graphics/Chess-pieces/white-pawn.png', (5, 6), 'P')
+w_pawn7 = Piece('graphics/Chess-pieces/white-pawn.png', (6, 6), 'P')
+w_pawn8 = Piece('graphics/Chess-pieces/white-pawn.png', (7, 6), 'P')
 
-b_king = Piece('Chess/graphics/Chess-pieces/black-king.png', (4, 0), 'k')
-b_queen = Piece('Chess/graphics/Chess-pieces/black-queen.png', (3, 0), 'q')
-b_rook1 = Piece('Chess/graphics/Chess-pieces/black-rook.png', (0, 0), 'r')
-b_bishop1 = Piece('Chess/graphics/Chess-pieces/black-bishop.png', (2, 0), 'b')
-b_knight1 = Piece('Chess/graphics/Chess-pieces/black-knight.png', (1, 0), 'n')
-b_rook2 = Piece('Chess/graphics/Chess-pieces/black-rook.png', (7, 0), 'r')
-b_bishop2 = Piece('Chess/graphics/Chess-pieces/black-bishop.png', (5, 0), 'b')
-b_knight2 = Piece('Chess/graphics/Chess-pieces/black-knight.png', (6, 0), 'n')
-b_pawn1 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (0, 1), 'p')
-b_pawn2 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (1, 1), 'p')
-b_pawn3 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (2, 1), 'p')
-b_pawn4 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (3, 1), 'p')
-b_pawn5 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (4, 1), 'p')
-b_pawn6 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (5, 1), 'p')
-b_pawn7 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (6, 1), 'p')
-b_pawn8 = Piece('Chess/graphics/Chess-pieces/black-pawn.png', (7, 1), 'p')
+b_king = Piece('graphics/Chess-pieces/black-king.png', (4, 0), 'k')
+b_queen = Piece('graphics/Chess-pieces/black-queen.png', (3, 0), 'q')
+b_rook1 = Piece('graphics/Chess-pieces/black-rook.png', (0, 0), 'r')
+b_bishop1 = Piece('graphics/Chess-pieces/black-bishop.png', (2, 0), 'b')
+b_knight1 = Piece('graphics/Chess-pieces/black-knight.png', (1, 0), 'n')
+b_rook2 = Piece('graphics/Chess-pieces/black-rook.png', (7, 0), 'r')
+b_bishop2 = Piece('graphics/Chess-pieces/black-bishop.png', (5, 0), 'b')
+b_knight2 = Piece('graphics/Chess-pieces/black-knight.png', (6, 0), 'n')
+b_pawn1 = Piece('graphics/Chess-pieces/black-pawn.png', (0, 1), 'p')
+b_pawn2 = Piece('graphics/Chess-pieces/black-pawn.png', (1, 1), 'p')
+b_pawn3 = Piece('graphics/Chess-pieces/black-pawn.png', (2, 1), 'p')
+b_pawn4 = Piece('graphics/Chess-pieces/black-pawn.png', (3, 1), 'p')
+b_pawn5 = Piece('graphics/Chess-pieces/black-pawn.png', (4, 1), 'p')
+b_pawn6 = Piece('graphics/Chess-pieces/black-pawn.png', (5, 1), 'p')
+b_pawn7 = Piece('graphics/Chess-pieces/black-pawn.png', (6, 1), 'p')
+b_pawn8 = Piece('graphics/Chess-pieces/black-pawn.png', (7, 1), 'p')
 
 
 def import_fen(fen_string):
@@ -326,7 +334,7 @@ while running:
             running = False
         
         if event.type == MOUSEBUTTONDOWN:
-            if event.button == 1:
+            if event.button == 1 and board.can_move:
                 for piece in board.pieces_list:
                     if piece.rect.collidepoint(event.pos): 
                         Piece.picked = piece
@@ -353,7 +361,8 @@ while running:
                 Piece.picked = None
                 board.moves_list.append(generate_fen())
                 board.move_number += 1
-
+                ai.move()
+                
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
                 if board.move_number > 0:
@@ -378,6 +387,8 @@ while running:
 
     clock.tick(60)
     pygame.display.update()
+
+print(board.moves_list)
 
 pygame.quit()
 
