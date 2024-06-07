@@ -102,15 +102,18 @@ class UI:
 
     def flip(self):
         fen = ''
-        for c in generate_fen()[:-1]:
+        old_fen = generate_fen()
+        for c in old_fen[:-3]:
             fen = c + fen
+        fen += old_fen[-2:]
         
         import_fen(fen)
 
 
 class AI:
     def __init__(self):
-        pass 
+        self.learn = False
+        self.data = {}
 
     def move(self):
         if board.move_number % 2:
@@ -118,6 +121,9 @@ class AI:
             fen = move_order[board.move_number]
             import_fen(fen)
             board.moves_list.append(fen)
+
+    def learn(self):
+        pass
             
             
 # Initializing Board and Chess Pieces with default positions
@@ -176,7 +182,7 @@ def import_fen(fen_string):
     for piece in board.pieces_list:
         piece.update_position(None) 
 
-    for c in fen_string:
+    for c in fen_string[:-2]:
         if (c.isnumeric() and 1 < int(c) < 9):
             file += int(c)
             continue
@@ -319,10 +325,12 @@ def generate_fen():
         else:
             fen += '/'
 
+    fen += ' b' if board.move_number % 2 else ' w'
+
     return fen
 
 
-import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR')
+import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w')
 board.moves_list.append(generate_fen())
 
 clock = pygame.time.Clock()
@@ -334,13 +342,14 @@ while running:
             running = False
         
         if event.type == MOUSEBUTTONDOWN:
-            if event.button == 1 and board.can_move:
-                for piece in board.pieces_list:
-                    if piece.rect.collidepoint(event.pos): 
-                        Piece.picked = piece
-                        board.pieces_list.remove(piece)
-                        board.pieces_list.append(piece)
-                        break
+            if event.button == 1:
+                if board.can_move:
+                    for piece in board.pieces_list:
+                        if piece.rect.collidepoint(event.pos): 
+                            Piece.picked = piece
+                            board.pieces_list.remove(piece)
+                            board.pieces_list.append(piece)
+                            break
 
                 if ui.flip_button_rect.collidepoint(event.pos):
                     ui.flip()
@@ -359,9 +368,10 @@ while running:
                         break
 
                 Piece.picked = None
-                board.moves_list.append(generate_fen())
                 board.move_number += 1
-                ai.move()
+                board.moves_list.append(generate_fen())
+                # ai.learn()
+                # ai.move()
                 
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
@@ -369,16 +379,25 @@ while running:
                     board.move_number -= 1
                     import_fen(board.moves_list[board.move_number])
 
+                if board.move_number != len(board.moves_list) - 1:
+                    board.can_move = False
+
             if event.key == K_RIGHT:
                 if len(board.moves_list) > board.move_number + 1:
                     board.move_number += 1
                     import_fen(board.moves_list[board.move_number])
+
+                if board.move_number == len(board.moves_list) - 1 :
+                    board.can_move = True
             
             if event.key == K_z:
                 if board.move_number == len(board.moves_list) - 1 and board.move_number:
                     board.moves_list.pop()
                     board.move_number -= 1
                     import_fen(board.moves_list[board.move_number])
+
+            if event.key == K_l:
+                ai.learn = not ai.learn
 
     screen.fill('#272521')
 
