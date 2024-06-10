@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 from pygame.sprite import Sprite, Group
 import math
+import json
 
 pygame.init()
 
@@ -14,8 +15,6 @@ screen = pygame.display.set_mode((width, height))
 light_square_color = '#7D955C'
 dark_square_color = '#EEEFD4'
 
-move_order = ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/', 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR/', 'rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR/', 'rnbqkbnr/ppp1pppp/8/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/', 'rnbqkb1r/ppp1pppp/5n2/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/', 'rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppp1pppp/2n2n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppp1pppp/2n2n2/1N1p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppp2ppp/2n1pn2/1N1p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'r1bqkb1r/ppN2ppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'r1bq1b1r/ppN1kppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'N1bq1b1r/pp2kppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'N2q1b1r/pp1bkppp/2n1pn2/3p4/3P1B2/8/PPP1PPPP/R2QKBNR/', 'N2q1b1r/pp1bkppp/2n1pn2/3p4/3P1B2/4P3/PPP2PPP/R2QKBNR/']
-
 
 class Board:
     def __init__(self):
@@ -26,6 +25,8 @@ class Board:
         self.moves_list = []
         self.move_number = 0
         self.can_move = True
+        self.user_colour = 'white'
+        self.colour_to_move = 'white'
         self.initialise_board()
 
     def initialise_board(self):
@@ -61,7 +62,7 @@ class Board:
 
         for piece in self.pieces_list:
             piece.display()
-    
+
 
 class Piece:
     picked = None
@@ -92,15 +93,49 @@ class Piece:
 
 class UI:
     def __init__(self):
+        font = pygame.font.Font(None, 90)
+        self.train_text_surf = font.render('Train', True, '#231f20')
+        self.train_text_rect = self.train_text_surf.get_rect(topleft=(9 * square_size, 4 * square_size + square_size/16))
+
+        self.learn_text_surf = font.render('Learn', True, '#231f20')
+        self.learn_text_rect = self.learn_text_surf.get_rect(topleft=(9 * square_size, 5 * square_size + square_size/16))
+
         self.image = pygame.image.load('graphics/flip_icon.png').convert_alpha()
-        self.flip_button_surf = pygame.transform.scale(self.image, (square_size - 20, square_size - 20))
-        self.flip_button_rect = self.flip_button_surf.get_rect(topleft=(9 * square_size, 6 * square_size + square_size/16))
+        self.flip_button_surf = pygame.transform.scale(self.image, (square_size - 40, square_size - 40))
+        self.flip_button_rect = self.flip_button_surf.get_rect(center=(9 * square_size + self.learn_text_rect.size[0]//2, 6 * square_size + square_size/16))
+
+        self.can_press_learn = True
 
     def draw(self):
-        pygame.draw.rect(screen, 'white', self.flip_button_rect, border_radius=30)
+        pygame.draw.rect(screen, 'white', self.train_text_rect, border_radius=5)
+        screen.blit(self.train_text_surf, self.train_text_rect)
+
+        if self.can_press_learn:
+            pygame.draw.rect(screen, 'white', self.learn_text_rect, border_radius=5)
+        else:
+            pygame.draw.rect(screen, 'dark grey', self.learn_text_rect, border_radius=5)
+        screen.blit(self.learn_text_surf, self.learn_text_rect)
+
+        pygame.draw.rect(screen, 'white', self.flip_button_rect, border_radius=5)
         screen.blit(self.flip_button_surf, self.flip_button_rect)
 
+    def refresh(self):
+        if board.user_colour == 'white' and board.colour_to_move == 'white':
+            self.can_press_learn = True
+        elif board.user_colour == 'black' and board.colour_to_move == 'black':
+            self.can_press_learn = True
+        else:
+            self.can_press_learn = False
+
+    def train(self):
+        with open('data.json', 'r') as file:
+            ai.data = json.load(file)
+
+        ai.is_training = True
+        ai.move()
+
     def flip(self):
+        board.user_colour = 'white' if board.user_colour == 'black' else 'black'
         fen = ''
         old_fen = generate_fen()
         for c in old_fen[:-3]:
@@ -108,24 +143,66 @@ class UI:
         fen += old_fen[-2:]
         
         import_fen(fen)
+        ui.refresh()
+
+    def learn(self):
+        if not ai.is_learning:
+            ai.is_learning = True
+            if board.user_colour == 'white':
+                ai.start_move = board.move_number + 1
+
+            with open('data.json', 'r') as file:
+                ai.data = json.load(file)
+
+        else:
+            ai.is_learning = False
+            ai.end_move = board.move_number
+            ai.learn()
+            with open('data.json', 'w') as file:
+                json.dump(ai.data, file, indent=4)
 
 
 class AI:
     def __init__(self):
-        self.learn = False
-        self.data = {}
+        self.is_learning = False
+        self.is_training = False
+        self.start_move = 0
+        self.end_move = 0
+        self.temp = ''
+        self.data = {"AI as black": {},
+                     "AI as white": {}}
 
     def move(self):
+        if not ai.is_training:
+            return
+
         if board.move_number % 2:
+            fen = ai.data['AI as black'][generate_fen()]
             board.move_number += 1
-            fen = move_order[board.move_number]
             import_fen(fen)
             board.moves_list.append(fen)
+            board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+
+        else:
+            fen = ai.data['AI as white'][generate_fen()]
+            board.move_number += 1
+            import_fen(fen)
+            board.moves_list.append(fen)
+            board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
 
     def learn(self):
-        pass
-            
-            
+        for i in range(self.start_move, self.end_move, 2):
+            if i + 1 < len(board.moves_list):
+                if board.user_colour == 'white': 
+                    white_move_fen = board.moves_list[i]
+                    black_move_fen = board.moves_list[i + 1]
+                    ai.data['AI as black'][white_move_fen] = black_move_fen
+                else:
+                    black_move_fen = board.moves_list[i]
+                    white_move_fen = board.moves_list[i + 1]
+                    ai.data['AI as white'][black_move_fen] = white_move_fen
+
+
 # Initializing Board and Chess Pieces with default positions
 board = Board()
 ui = UI()
@@ -168,138 +245,41 @@ b_pawn8 = Piece('graphics/Chess-pieces/black-pawn.png', (7, 1), 'p')
 def import_fen(fen_string):
     rank = 0
     file = 0
-    repeat = {
-        'r': 0,
-        'n': 0,
-        'b': 0,
-        'p': 0,
-        'R': 0,
-        'N': 0,
-        'B': 0,
-        'P': 0,
+
+    repeatable_pieces = {
+        'r': [b_rook1, b_rook2],
+        'n': [b_knight1, b_knight2],
+        'b': [b_bishop1, b_bishop2],
+        'p': [b_pawn1, b_pawn2, b_pawn3, b_pawn4, b_pawn5, b_pawn6, b_pawn7, b_pawn8],
+        'R': [w_rook1, w_rook2],
+        'N': [w_knight1, w_knight2],
+        'B': [w_bishop1, w_bishop2],
+        'P': [w_pawn1, w_pawn2, w_pawn3, w_pawn4, w_pawn5, w_pawn6, w_pawn7, w_pawn8]
+    }
+
+    single_pieces = {
+        'q': b_queen,
+        'k': b_king,
+        'Q': w_queen,
+        'K': w_king
     }
 
     for piece in board.pieces_list:
-        piece.update_position(None) 
+        piece.update_position(None)
 
-    for c in fen_string[:-2]:
-        if (c.isnumeric() and 1 < int(c) < 9):
+    for c in fen_string.split()[0]:
+        if c.isnumeric():
             file += int(c)
-            continue
-
-        elif (c == '/'):
+        elif c == '/':
             file = 0
             rank += 1
-            continue
-
-        match c:
-            case 'r':
-                if (repeat[c] == 0):
-                    b_rook1.update_position((file, rank))
-                    repeat[c] = 1
-                else:
-                    b_rook2.update_position((file, rank))
-            
-            case 'n':
-                if (repeat[c] == 0):
-                    b_knight1.update_position((file, rank))
-                    repeat[c] = 1
-                else:
-                    b_knight2.update_position((file, rank))
-
-            case 'b':
-                if (repeat[c] == 0):
-                    b_bishop1.update_position((file, rank))
-                    repeat[c] = 1
-                else:
-                    b_bishop2.update_position((file, rank))
-            
-            case 'q':
-                b_queen.update_position((file, rank))
-
-            case 'k':
-                b_king.update_position((file, rank))
-
-            case 'p':
-                if (repeat[c] == 0):
-                    b_pawn1.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 1):
-                    b_pawn2.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 2):
-                    b_pawn3.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 3):
-                    b_pawn4.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 4):
-                    b_pawn5.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 5):
-                    b_pawn6.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 6):
-                    b_pawn7.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 7):
-                    b_pawn8.update_position((file, rank))
-                    repeat[c] += 1
-            
-            case 'R':
-                if (repeat[c] == 0):
-                    w_rook1.update_position((file, rank))
-                    repeat[c] = 1
-                else:
-                    w_rook2.update_position((file, rank))
-
-            case 'N':
-                if (repeat[c] == 0):
-                    w_knight1.update_position((file, rank))
-                    repeat[c] = 1
-                else:
-                    w_knight2.update_position((file, rank))
-
-            case 'B':
-                if (repeat[c] == 0):
-                    w_bishop1.update_position((file, rank))
-                    repeat[c] = 1
-                else:
-                    w_bishop2.update_position((file, rank))
-            
-            case 'Q':
-                w_queen.update_position((file, rank))
-
-            case 'K':
-                w_king.update_position((file, rank))
-
-            case 'P':
-                if (repeat[c] == 0):
-                    w_pawn1.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 1):
-                    w_pawn2.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 2):
-                    w_pawn3.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 3):
-                    w_pawn4.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 4):
-                    w_pawn5.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 5):
-                    w_pawn6.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 6):
-                    w_pawn7.update_position((file, rank))
-                    repeat[c] += 1
-                elif (repeat[c] == 7):
-                    w_pawn8.update_position((file, rank))
-                    repeat[c] += 1
-        
-        file += 1
+        else:
+            if c in repeatable_pieces:
+                repeatable_pieces[c][0].update_position((file, rank))
+                repeatable_pieces[c].pop(0)
+            elif c in single_pieces:
+                single_pieces[c].update_position((file, rank))
+            file += 1
 
 
 def generate_fen():
@@ -351,6 +331,13 @@ while running:
                             board.pieces_list.append(piece)
                             break
 
+                if ui.train_text_rect.collidepoint(event.pos):
+                    ui.train()
+
+                if ui.learn_text_rect.collidepoint(event.pos) and ui.can_press_learn:
+                    print('learning')
+                    ui.learn()
+            
                 if ui.flip_button_rect.collidepoint(event.pos):
                     ui.flip()
             
@@ -359,7 +346,7 @@ while running:
                 Piece.picked.rect.center = event.pos
 
         if event.type == MOUSEBUTTONUP:
-            if Piece.picked:
+            if Piece.picked and event.button == 1:
                 index = board.square_centers.index(board.closest_point(Piece.picked.rect.center, board.square_centers))
                 Piece.picked.update_position((index // 8, index % 8))
                 for piece in board.pieces_list:
@@ -370,13 +357,15 @@ while running:
                 Piece.picked = None
                 board.move_number += 1
                 board.moves_list.append(generate_fen())
-                # ai.learn()
-                # ai.move()
+                board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+                ui.refresh()
+                ai.move()
+                
                 
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
                 if board.move_number > 0:
-                    board.move_number -= 1
+                    board.move_number -= 1  
                     import_fen(board.moves_list[board.move_number])
 
                 if board.move_number != len(board.moves_list) - 1:
@@ -394,10 +383,9 @@ while running:
                 if board.move_number == len(board.moves_list) - 1 and board.move_number:
                     board.moves_list.pop()
                     board.move_number -= 1
+                    board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+                    ui.refresh()
                     import_fen(board.moves_list[board.move_number])
-
-            if event.key == K_l:
-                ai.learn = not ai.learn
 
     screen.fill('#272521')
 
@@ -407,7 +395,6 @@ while running:
     clock.tick(60)
     pygame.display.update()
 
-print(board.moves_list)
 
 pygame.quit()
 
