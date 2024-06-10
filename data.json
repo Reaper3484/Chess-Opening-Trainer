@@ -1,15 +1,6 @@
 {
     "AI as black": {
-        "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR/ b": "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR/ w",
-        "rnbqkbnr/ppp1pppp/8/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/ b": "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/ w",
-        "rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/ b": "r1bqkb1r/ppp1pppp/n4n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/ w",
-        "r1bqkb1r/ppp1pppp/n4n2/3p4/3P1B2/2N1P3/PPP2PPP/R2QKBNR/ b": "r1bqkb1r/ppp2ppp/n3pn2/3p4/3P1B2/2N1P3/PPP2PPP/R2QKBNR/ w",
-        "r1bqkb1r/ppp2ppp/B3pn2/3p4/3P1B2/2N1P3/PPP2PPP/R2QK1NR/ b": "r1bqkb1r/p1p2ppp/p3pn2/3p4/3P1B2/2N1P3/PPP2PPP/R2QK1NR/ w",
-        "r1bqkb1r/p1p2ppp/p3pn2/3p4/3P1B2/2N1PN2/PPP2PPP/R2QK2R/ b": "r1bqk2r/p1p1bppp/p3pn2/3p4/3P1B2/2N1PN2/PPP2PPP/R2QK2R/ w"
     },
     "AI as white": {
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/ w": "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b",
-        "RNBKQBNR/PPP1PPPP/8/3P4/8/5p2/ppppp1pp/rnbkqbnr/ w": "RNBKQBNR/PPP2PPP/8/3PP3/8/5p2/ppppp1pp/rnbkqbnr/ b",
-        "RNBKQBNR/PPP2PPP/8/3PP3/4p3/5p2/pppp2pp/rnbkqbnr/ w": "RNBKQBNR/PPP2PPP/8/4P3/3Pp3/5p2/pppp2pp/rnbkqbnr/ b"
     }
 }

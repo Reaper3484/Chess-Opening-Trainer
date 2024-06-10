@@ -71,6 +71,7 @@ class Piece:
         self.surf = pygame.image.load(image_location).convert_alpha()
         self.rect = self.surf.get_rect(topleft=(position[0] * square_size, position[1] * square_size))
         self.id = id
+        self.colour = 'white' if self.id.isupper() else 'black'
         self.position = position
         board.pieces_pos_list[position[0]][position[1]] = self
         board.pieces_list.append(self)
@@ -323,23 +324,25 @@ while running:
         
         if event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
-                if board.can_move:
+                if ui.train_text_rect.collidepoint(event.pos):
+                    ui.train()
+
+                elif ui.learn_text_rect.collidepoint(event.pos) and ui.can_press_learn:
+                    ui.learn()
+            
+                elif ui.flip_button_rect.collidepoint(event.pos):
+                    ui.flip()
+
+                elif board.can_move:
                     for piece in board.pieces_list:
                         if piece.rect.collidepoint(event.pos): 
+                            if piece.colour != board.colour_to_move:
+                                continue
                             Piece.picked = piece
                             board.pieces_list.remove(piece)
                             board.pieces_list.append(piece)
                             break
 
-                if ui.train_text_rect.collidepoint(event.pos):
-                    ui.train()
-
-                if ui.learn_text_rect.collidepoint(event.pos) and ui.can_press_learn:
-                    print('learning')
-                    ui.learn()
-            
-                if ui.flip_button_rect.collidepoint(event.pos):
-                    ui.flip()
             
         if event.type == MOUSEMOTION:
             if Piece.picked:
@@ -371,7 +374,7 @@ while running:
                 if board.move_number != len(board.moves_list) - 1:
                     board.can_move = False
 
-            if event.key == K_RIGHT:
+            elif event.key == K_RIGHT:
                 if len(board.moves_list) > board.move_number + 1:
                     board.move_number += 1
                     import_fen(board.moves_list[board.move_number])
@@ -379,7 +382,7 @@ while running:
                 if board.move_number == len(board.moves_list) - 1 :
                     board.can_move = True
             
-            if event.key == K_z:
+            elif event.key == K_z:
                 if board.move_number == len(board.moves_list) - 1 and board.move_number:
                     board.moves_list.pop()
                     board.move_number -= 1
