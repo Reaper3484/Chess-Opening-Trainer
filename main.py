@@ -14,6 +14,9 @@ screen = pygame.display.set_mode((width, height))
 
 light_square_color = '#7D955C'
 dark_square_color = '#EEEFD4'
+picked_square_color = 'yellow'
+prev_square_color = 'light blue'
+next_square_color = 'blue'
 
 
 class Board:
@@ -27,6 +30,8 @@ class Board:
         self.can_move = True
         self.user_colour = 'white'
         self.colour_to_move = 'white'
+        self.move_squares = []
+        self.move_squares_list = []
         self.initialise_board()
 
     def initialise_board(self):
@@ -37,10 +42,20 @@ class Board:
                 self.square_centers.append(square_rect.center)
                 if ((i % 2 == 0 and j % 2 == 0) or (i % 2 == 1 and j % 2 == 1)):
                     square_surf.fill(light_square_color)
+                    self.square_list[i][j] = (square_surf, square_rect, light_square_color)
                 else:
                     square_surf.fill(dark_square_color)
+                    self.square_list[i][j] = (square_surf, square_rect, dark_square_color)
 
-                self.square_list[i][j] = (square_surf, square_rect)
+    def get_piece_on_square(self, square):
+        for piece in board.pieces_list:
+            if piece.get_square() == square:
+                return piece
+
+    def get_square_index(self, square):
+        for i, sublist in enumerate(self.square_list):
+            if square in sublist:
+                return (i, sublist.index(square))
 
     def closest_point(self, point, points):
         min_distance = float('inf')
@@ -53,6 +68,48 @@ class Board:
                 closest = p
         
         return closest
+
+    def update_move_squares(self, index=None):
+        if self.move_squares:
+            sq1, sq2 = [board.square_list[p[0]][p[1]] for p in self.move_squares]
+            sq1[0].fill(sq1[2])
+            sq2[0].fill(sq2[2])
+
+        index = index if index else board.move_number
+        index -= 1
+
+        if index < 0:
+            return
+
+        self.move_squares = self.move_squares_list[index]
+        sq1, sq2 = [board.square_list[p[0]][p[1]] for p in self.move_squares_list[index]]
+        sq1[0].fill(prev_square_color)
+        sq2[0].fill(next_square_color)
+
+    def get_positions_changed(self, prev_move_number, next_move_number):
+        changed_squares = [None, None]
+        sq_list = [item for sublist in board.square_list for item in sublist]
+
+        import_fen(board.moves_list[prev_move_number])
+        prev_board_state = [board.get_piece_on_square(square) for square in sq_list]
+
+        import_fen(board.moves_list[next_move_number])
+        next_board_state = [board.get_piece_on_square(square) for square in sq_list]
+
+        for i, square in enumerate(sq_list):
+            prev_piece = prev_board_state[i]
+            next_piece = next_board_state[i]
+
+            if prev_piece is not None and next_piece is None:
+                changed_squares[0] = square
+            elif prev_piece is None and next_piece is not None:
+                changed_squares[1] = square
+            elif prev_piece == None and next_piece == None:
+                pass
+            elif prev_piece.id != next_piece.id:
+                changed_squares[1] = square
+                
+        return changed_squares
 
     def draw_board(self):
         for i in range(8):
@@ -79,14 +136,14 @@ class Piece:
 
     def update_position(self, position):
         self.position = position
-        if self.position:
-            self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
-            self.rect.center = board.closest_point(self.rect.center, board.square_centers)
-        else:
-            self.rect.topleft = (-500, -500)
+        self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
+        self.rect.center = board.closest_point(self.rect.center, board.square_centers)
 
     def get_position(self):
         return self.position
+
+    def get_square(self):
+        return board.square_list[self.position[0]][self.position[1]]
 
     def display(self):
         screen.blit(self.surf, self.rect)
@@ -177,19 +234,16 @@ class AI:
         if not ai.is_training:
             return
 
-        if board.move_number % 2:
-            fen = ai.data['AI as black'][generate_fen()]
-            board.move_number += 1
-            import_fen(fen)
-            board.moves_list.append(fen)
-            board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+        ai_colour = 'AI as black' if board.move_number % 2 else 'AI as white'
+        fen = ai.data[ai_colour][generate_fen()]
+        board.move_number += 1
+        import_fen(fen)
+        board.moves_list.append(fen)
+        board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
 
-        else:
-            fen = ai.data['AI as white'][generate_fen()]
-            board.move_number += 1
-            import_fen(fen)
-            board.moves_list.append(fen)
-            board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+        squares = board.get_positions_changed(board.move_number - 1, board.move_number)
+        board.move_squares_list.append([board.get_square_index(square) for square in squares])
+        board.update_move_squares()
 
     def learn(self):
         for i in range(self.start_move, self.end_move, 2):
@@ -265,8 +319,7 @@ def import_fen(fen_string):
         'K': w_king
     }
 
-    for piece in board.pieces_list:
-        piece.update_position(None)
+    board.pieces_list = []
 
     for c in fen_string.split()[0]:
         if c.isnumeric():
@@ -276,9 +329,11 @@ def import_fen(fen_string):
             rank += 1
         else:
             if c in repeatable_pieces:
+                board.pieces_list.append(repeatable_pieces[c][0])
                 repeatable_pieces[c][0].update_position((file, rank))
                 repeatable_pieces[c].pop(0)
             elif c in single_pieces:
+                board.pieces_list.append(single_pieces[c])
                 single_pieces[c].update_position((file, rank))
             file += 1
 
@@ -339,6 +394,8 @@ while running:
                             if piece.colour != board.colour_to_move:
                                 continue
                             Piece.picked = piece
+                            piece.rect.center = event.pos
+                            piece.get_square()[0].fill(picked_square_color)
                             board.pieces_list.remove(piece)
                             board.pieces_list.append(piece)
                             break
@@ -350,15 +407,21 @@ while running:
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked and event.button == 1:
+                square = Piece.picked.get_square()
+                square[0].fill(square[2])
+                board.move_squares_list.append([board.get_square_index(square)])
                 index = board.square_centers.index(board.closest_point(Piece.picked.rect.center, board.square_centers))
                 Piece.picked.update_position((index // 8, index % 8))
                 for piece in board.pieces_list:
                     if piece != Piece.picked and piece.rect.center == Piece.picked.rect.center:
-                        piece.update_position(None)
+                        board.pieces_list.remove(piece)
                         break
 
+                square = Piece.picked.get_square()
+                board.move_squares_list[-1].append(board.get_square_index(square))
                 Piece.picked = None
                 board.move_number += 1
+                board.update_move_squares()
                 board.moves_list.append(generate_fen())
                 board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
                 ui.refresh()
@@ -371,6 +434,8 @@ while running:
                     board.move_number -= 1  
                     import_fen(board.moves_list[board.move_number])
 
+                    board.update_move_squares()
+
                 if board.move_number != len(board.moves_list) - 1:
                     board.can_move = False
 
@@ -378,6 +443,8 @@ while running:
                 if len(board.moves_list) > board.move_number + 1:
                     board.move_number += 1
                     import_fen(board.moves_list[board.move_number])
+
+                    board.update_move_squares()
 
                 if board.move_number == len(board.moves_list) - 1 :
                     board.can_move = True
@@ -389,6 +456,9 @@ while running:
                     board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
                     ui.refresh()
                     import_fen(board.moves_list[board.move_number])
+                    
+                    board.move_squares_list.pop()
+                    board.update_move_squares()
 
     screen.fill('#272521')
 
