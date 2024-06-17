@@ -86,7 +86,7 @@ class Board:
         sq1[0].fill(prev_square_color)
         sq2[0].fill(next_square_color)
 
-    def get_positions_changed(self, prev_move_number, next_move_number):
+    def get_positions_changed(self, prev_move_number, next_move_number, is_castle):
         changed_squares = [
             {
                 'prev': None,
@@ -127,13 +127,19 @@ class Board:
                 else:
                     changed_squares[0]['next'] = square
                 
-        if not changed_squares[1]['next']:
+        if not changed_squares[1]['prev']:
             changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next']]
         else:
-            if self.get_square_index(changed_squares[0]['prev']) == (0, 0):
-                changed_squares = [changed_squares[1]['prev'], changed_squares[0]['prev']]
-            else: 
-                changed_squares = [changed_squares[0]['prev'], changed_squares[1]['prev']]
+            if is_castle:
+                if self.get_square_index(changed_squares[0]['prev']) == (0, 0):
+                    changed_squares = [changed_squares[1]['prev'], changed_squares[0]['prev']]
+                else: 
+                    changed_squares = [changed_squares[0]['prev'], changed_squares[1]['prev']]
+            else:
+                if self.get_square_index(changed_squares[0]['prev'])[0] < self.get_square_index(changed_squares[0]['next'])[0]:
+                    changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next']]
+                else:
+                    changed_squares = [changed_squares[1]['prev'], changed_squares[0]['next']]
                 
         return changed_squares
 
@@ -261,11 +267,13 @@ class AI:
         ai_colour = 'b' if board.user_colour == 'w' else 'w'
         fen = ai.data[ai_colour][generate_fen()]
         board.move_number += 1
+        old_castle_info = game_manager.castle_info
         import_fen(fen)
         board.moves_list.append(fen)
         board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
 
-        squares = board.get_positions_changed(board.move_number - 1, board.move_number)
+        is_castle = True if old_castle_info != game_manager.castle_info else False 
+        squares = board.get_positions_changed(board.move_number - 1, board.move_number, is_castle)
         board.move_squares_list.append([board.get_square_index(square) for square in squares])
         board.update_move_squares()
 
@@ -287,11 +295,52 @@ class GameManager:
         self.board = board
         self.ui = ui
         self.ai = ai
-        self.can_en_passant = False
+        self.en_passant_target_square = '-'
         self.castle_info = 'KQkq'
 
     def update(self):
         pass
+
+    def index_to_chess_notation(self, index):
+        files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+        ranks = ['1', '2', '3', '4', '5', '6', '7', '8']
+        
+        file = files[index[0]]
+        rank = ranks[7 - index[1]]
+        
+        return f"{file}{rank}"
+    
+    def chess_notation_to_index(self, notation):
+        files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+        ranks = ['1', '2', '3', '4', '5', '6', '7', '8']
+        
+        file = notation[0]
+        rank = notation[1]
+        
+        file_index = files.index(file)
+        rank_index = 7 - ranks.index(rank)
+        
+        return (file_index, rank_index)
+
+    def en_passant(self, pawn, old_pos):
+        new_pos = pawn.get_position()
+
+        if pawn.id.lower() == 'p' and self.en_passant_target_square != '-':
+            target_index = self.chess_notation_to_index(self.en_passant_target_square)
+            if new_pos == target_index:
+                captured_pawn = self.board.get_piece_on_square(self.board.square_list[new_pos[0]][old_pos[1]])
+                self.board.pieces_list.remove(captured_pawn)
+                self.en_passant_target_square = '-'
+                return
+
+        if pawn.id.lower() == 'p':
+            if abs(new_pos[1] - old_pos[1]) == 2:
+                mid_index = (old_pos[0], (new_pos[1] + old_pos[1]) // 2)
+                self.en_passant_target_square = self.index_to_chess_notation(mid_index)
+            else:
+                self.en_passant_target_square = '-'
+        else:
+            self.en_passant_target_square = '-'
 
     def update_castling(self, piece, pos):
         if piece.id == 'K':
@@ -466,6 +515,7 @@ def import_fen(fen_string):
         
     board.colour_to_move = fen_string.split()[1]
     game_manager.castle_info = fen_string.split()[2]
+    game_manager.en_passant_target_square = fen_string.split()[3]
 
 
 def generate_fen():
@@ -493,11 +543,12 @@ def generate_fen():
 
     fen += ' b' if board.move_number % 2 else ' w'
     fen += ' ' + game_manager.castle_info
+    fen += ' ' + game_manager.en_passant_target_square
 
     return fen
 
 
-import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq')
+import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -')
 board.moves_list.append(generate_fen())
 
 clock = pygame.time.Clock()
@@ -567,6 +618,7 @@ while running:
                     Piece.picked = None
                     continue
 
+                game_manager.en_passant(Piece.picked, old_pos)
                 game_manager.update_castling(Piece.picked, old_pos)
 
                 Piece.picked = None
