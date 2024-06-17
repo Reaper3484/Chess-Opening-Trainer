@@ -28,8 +28,8 @@ class Board:
         self.moves_list = []
         self.move_number = 0
         self.can_move = True
-        self.user_colour = 'white'
-        self.colour_to_move = 'white'
+        self.user_colour = 'w'
+        self.colour_to_move = 'w'
         self.move_squares = []
         self.move_squares_list = []
         self.initialise_board()
@@ -87,7 +87,16 @@ class Board:
         sq2[0].fill(next_square_color)
 
     def get_positions_changed(self, prev_move_number, next_move_number):
-        changed_squares = [None, None]
+        changed_squares = [
+            {
+                'prev': None,
+                'next': None
+            },
+            {
+                'prev': None,
+                'next': None
+            }
+        ]
         sq_list = [item for sublist in board.square_list for item in sublist]
 
         import_fen(board.moves_list[prev_move_number])
@@ -101,13 +110,30 @@ class Board:
             next_piece = next_board_state[i]
 
             if prev_piece is not None and next_piece is None:
-                changed_squares[0] = square
+                if changed_squares[0]['prev']:
+                    changed_squares[1]['prev'] = square
+                else:
+                    changed_squares[0]['prev'] = square
             elif prev_piece is None and next_piece is not None:
-                changed_squares[1] = square
+                if changed_squares[0]['next']:
+                    changed_squares[1]['next'] = square
+                else:
+                    changed_squares[0]['next'] = square
             elif prev_piece == None and next_piece == None:
                 pass
             elif prev_piece.id != next_piece.id:
-                changed_squares[1] = square
+                if changed_squares[0]['next']:
+                    changed_squares[1]['next'] = square
+                else:
+                    changed_squares[0]['next'] = square
+                
+        if not changed_squares[1]['next']:
+            changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next']]
+        else:
+            if self.get_square_index(changed_squares[0]['prev']) == (0, 0):
+                changed_squares = [changed_squares[1]['prev'], changed_squares[0]['prev']]
+            else: 
+                changed_squares = [changed_squares[0]['prev'], changed_squares[1]['prev']]
                 
         return changed_squares
 
@@ -128,7 +154,7 @@ class Piece:
         self.surf = pygame.image.load(image_location).convert_alpha()
         self.rect = self.surf.get_rect(topleft=(position[0] * square_size, position[1] * square_size))
         self.id = id
-        self.colour = 'white' if self.id.isupper() else 'black'
+        self.colour = 'w' if self.id.isupper() else 'b'
         self.position = position
         board.pieces_pos_list[position[0]][position[1]] = self
         board.pieces_list.append(self)
@@ -178,9 +204,9 @@ class UI:
         screen.blit(self.flip_button_surf, self.flip_button_rect)
 
     def refresh(self):
-        if board.user_colour == 'white' and board.colour_to_move == 'white':
+        if board.user_colour == 'w' and board.colour_to_move == 'w':
             self.can_press_learn = True
-        elif board.user_colour == 'black' and board.colour_to_move == 'black':
+        elif board.user_colour == 'b' and board.colour_to_move == 'b':
             self.can_press_learn = True
         else:
             self.can_press_learn = False
@@ -193,12 +219,10 @@ class UI:
         ai.move()
 
     def flip(self):
-        board.user_colour = 'white' if board.user_colour == 'black' else 'black'
+        board.user_colour = 'w' if board.user_colour == 'b' else 'b'
         fen = ''
         old_fen = generate_fen()
-        for c in old_fen[:-3]:
-            fen = c + fen
-        fen += old_fen[-2:]
+        fen = old_fen.split()[0][-2::-1] + ' ' + ' '.join(old_fen.split()[1:])
         
         import_fen(fen)
         ui.refresh()
@@ -206,7 +230,7 @@ class UI:
     def learn(self):
         if not ai.is_learning:
             ai.is_learning = True
-            if board.user_colour == 'white':
+            if board.user_colour == 'w':
                 ai.start_move = board.move_number + 1
 
             with open('data.json', 'r') as file:
@@ -234,12 +258,12 @@ class AI:
         if not ai.is_training:
             return
 
-        ai_colour = 'AI as black' if board.move_number % 2 else 'AI as white'
+        ai_colour = 'b' if board.user_colour == 'w' else 'w'
         fen = ai.data[ai_colour][generate_fen()]
         board.move_number += 1
         import_fen(fen)
         board.moves_list.append(fen)
-        board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+        board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
 
         squares = board.get_positions_changed(board.move_number - 1, board.move_number)
         board.move_squares_list.append([board.get_square_index(square) for square in squares])
@@ -248,20 +272,123 @@ class AI:
     def learn(self):
         for i in range(self.start_move, self.end_move, 2):
             if i + 1 < len(board.moves_list):
-                if board.user_colour == 'white': 
+                if board.user_colour == 'w': 
                     white_move_fen = board.moves_list[i]
                     black_move_fen = board.moves_list[i + 1]
-                    ai.data['AI as black'][white_move_fen] = black_move_fen
+                    ai.data['b'][white_move_fen] = black_move_fen
                 else:
                     black_move_fen = board.moves_list[i]
                     white_move_fen = board.moves_list[i + 1]
-                    ai.data['AI as white'][black_move_fen] = white_move_fen
+                    ai.data['w'][black_move_fen] = white_move_fen
+
+
+class GameManager:
+    def __init__(self, board, ui, ai):
+        self.board = board
+        self.ui = ui
+        self.ai = ai
+        self.can_en_passant = False
+        self.castle_info = 'KQkq'
+
+    def update(self):
+        pass
+
+    def update_castling(self, piece, pos):
+        if piece.id == 'K':
+            self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
+            self.castle_info = '-' if not self.castle_info else self.castle_info
+            return
+        elif piece.id == 'k':
+            self.castle_info = ''.join([char for char in self.castle_info if char.isupper()])
+            self.castle_info = '-' if not self.castle_info else self.castle_info
+            return
+
+        if not piece.id.lower() == 'r':
+            return
+
+        if pos == (0, 0):
+            if board.user_colour == 'w':
+                self.castle_info = self.castle_info.replace('q', '')
+            else:
+                self.castle_info = self.castle_info.replace('K', '')
+        elif pos == (7, 0):
+            if board.user_colour == 'w':
+                self.castle_info = self.castle_info.replace('k', '')
+            else:
+                self.castle_info = self.castle_info.replace('Q', '')
+        elif pos == (0, 7):
+            if board.user_colour == 'w':
+                self.castle_info = self.castle_info.replace('Q', '')
+            else:
+                self.castle_info = self.castle_info.replace('k', '')
+        elif pos == (7, 7):
+            if board.user_colour == 'w':
+                self.castle_info = self.castle_info.replace('K', '')
+            else:
+                self.castle_info = self.castle_info.replace('q', '')
+
+        self.castle_info = '-' if not self.castle_info else self.castle_info
+
+    def castle(self, king, rook, old_pos):
+        if not (king.id.lower() == 'k' and rook.id.lower() == 'r'):
+            return False            
+        
+        king_pos = old_pos
+        rook_pos = rook.get_position()
+        castled = False
+
+        if king_pos[0] < rook_pos[0]:
+            for i in range(king_pos[0] + 1, rook_pos[0]):
+                sq = self.board.square_list[i][king_pos[1]]
+                if self.board.get_piece_on_square(sq):
+                    return False
+
+        else:
+            for i in range(rook_pos[0] + 1, king_pos[0]):
+                sq = self.board.square_list[i][king_pos[1]]
+                if self.board.get_piece_on_square(sq):
+                    return False
+        
+        if self.board.user_colour == 'w':
+            if (rook_pos == (0, 0) and self.castle_info.find('q') != -1) or (rook_pos == (0, 7) and self.castle_info.find('Q') != -1):
+                king_pos = (2, king_pos[1])
+                rook_pos = (3, rook_pos[1])
+                castled = True
+            elif (rook_pos == (7, 0) and self.castle_info.find('k') != -1) or (rook_pos == (7, 7) and self.castle_info.find('K') != -1):
+                king_pos = (6, king_pos[1])
+                rook_pos = (5, rook_pos[1])
+                castled = True
+        else:
+            if (rook_pos == (0, 0) and self.castle_info.find('K') != -1) or (rook_pos == (0, 7) and self.castle_info.find('k') != -1):
+                king_pos = (1, king_pos[1])
+                rook_pos = (2, rook_pos[1])
+                castled = True
+            elif (rook_pos == (7, 0) and self.castle_info.find('Q') != -1) or (rook_pos == (7, 7) and self.castle_info.find('q') != -1):
+                king_pos = (5, king_pos[1])
+                rook_pos = (4, rook_pos[1])
+                castled = True
+        
+        if not castled:
+            return False
+
+        if king.colour == 'w': 
+            self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
+        else:
+            self.castle_info = ''.join([char for char in self.castle_info if char.isupper()])
+
+        self.castle_info = '-' if not self.castle_info else self.castle_info
+
+        king.update_position(king_pos) 
+        rook.update_position(rook_pos) 
+
+        return True
 
 
 # Initializing Board and Chess Pieces with default positions
 board = Board()
 ui = UI()
 ai = AI()
+game_manager = GameManager(board, ui, ai)
 w_king = Piece('graphics/Chess-pieces/white-king.png', (4, 7), 'K')
 w_queen = Piece('graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
 w_rook1 = Piece('graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
@@ -336,6 +463,9 @@ def import_fen(fen_string):
                 board.pieces_list.append(single_pieces[c])
                 single_pieces[c].update_position((file, rank))
             file += 1
+        
+    board.colour_to_move = fen_string.split()[1]
+    game_manager.castle_info = fen_string.split()[2]
 
 
 def generate_fen():
@@ -362,11 +492,12 @@ def generate_fen():
             fen += '/'
 
     fen += ' b' if board.move_number % 2 else ' w'
+    fen += ' ' + game_manager.castle_info
 
     return fen
 
 
-import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w')
+import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq')
 board.moves_list.append(generate_fen())
 
 clock = pygame.time.Clock()
@@ -407,23 +538,44 @@ while running:
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked and event.button == 1:
+                valid_move = True
                 square = Piece.picked.get_square()
                 square[0].fill(square[2])
-                board.move_squares_list.append([board.get_square_index(square)])
+
                 index = board.square_centers.index(board.closest_point(Piece.picked.rect.center, board.square_centers))
-                Piece.picked.update_position((index // 8, index % 8))
+                old_pos = Piece.picked.get_position()
+                new_pos = index // 8, index % 8
+
+                if old_pos == new_pos:
+                    Piece.picked.update_position(old_pos)
+                    Piece.picked = None
+                    continue
+
+                Piece.picked.update_position(new_pos)
+
                 for piece in board.pieces_list:
-                    if piece != Piece.picked and piece.rect.center == Piece.picked.rect.center:
-                        board.pieces_list.remove(piece)
+                    if Piece.picked != piece and piece.get_position() == new_pos:
+                        if piece.colour == Piece.picked.colour:
+                            if not game_manager.castle(Piece.picked, piece, old_pos):
+                                valid_move = False
+                        else:
+                            board.pieces_list.remove(piece)
                         break
 
-                square = Piece.picked.get_square()
-                board.move_squares_list[-1].append(board.get_square_index(square))
+                if not valid_move:
+                    Piece.picked.update_position(old_pos)
+                    Piece.picked = None
+                    continue
+
+                game_manager.update_castling(Piece.picked, old_pos)
+
                 Piece.picked = None
+                board.move_squares_list.append([old_pos, new_pos])
                 board.move_number += 1
                 board.update_move_squares()
                 board.moves_list.append(generate_fen())
-                board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+                board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
+
                 ui.refresh()
                 ai.move()
                 
@@ -451,13 +603,13 @@ while running:
             
             elif event.key == K_z:
                 if board.move_number == len(board.moves_list) - 1 and board.move_number:
-                    board.moves_list.pop()
                     board.move_number -= 1
-                    board.colour_to_move = 'black' if board.colour_to_move == 'white' else 'white'
+                    board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
                     ui.refresh()
                     import_fen(board.moves_list[board.move_number])
-                    
+
                     board.move_squares_list.pop()
+                    board.moves_list.pop()
                     board.update_move_squares()
 
     screen.fill('#272521')
