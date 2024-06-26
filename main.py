@@ -86,7 +86,7 @@ class Board:
         sq1[0].fill(prev_square_color)
         sq2[0].fill(next_square_color)
 
-    def get_positions_changed(self, prev_move_number, next_move_number, is_castle):
+    def get_positions_changed(self, prev_move_number, next_move_number):
         changed_squares = [
             {
                 'prev': None,
@@ -99,11 +99,11 @@ class Board:
         ]
         sq_list = [item for sublist in board.square_list for item in sublist]
 
-        import_fen(board.moves_list[prev_move_number])
-        prev_board_state = [board.get_piece_on_square(square) for square in sq_list]
-
         import_fen(board.moves_list[next_move_number])
         next_board_state = [board.get_piece_on_square(square) for square in sq_list]
+
+        import_fen(board.moves_list[prev_move_number])
+        prev_board_state = [board.get_piece_on_square(square) for square in sq_list]
 
         for i, square in enumerate(sq_list):
             prev_piece = prev_board_state[i]
@@ -129,17 +129,18 @@ class Board:
                 
         if not changed_squares[1]['prev']:
             changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next']]
+        elif changed_squares[1]['next']:
+            if self.get_square_index(changed_squares[0]['prev']) == (0, 0):
+                changed_squares = [changed_squares[1]['prev'], changed_squares[0]['prev'], 
+                                    changed_squares[0]['next'], changed_squares[1]['next']]
+            else: 
+                changed_squares = [changed_squares[0]['prev'], changed_squares[1]['prev'], 
+                                    changed_squares[1]['next'], changed_squares[0]['next']]
         else:
-            if is_castle:
-                if self.get_square_index(changed_squares[0]['prev']) == (0, 0):
-                    changed_squares = [changed_squares[1]['prev'], changed_squares[0]['prev']]
-                else: 
-                    changed_squares = [changed_squares[0]['prev'], changed_squares[1]['prev']]
+            if self.get_square_index(changed_squares[0]['prev'])[0] < self.get_square_index(changed_squares[0]['next'])[0]:
+                changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next'], changed_squares[1]['prev']]
             else:
-                if self.get_square_index(changed_squares[0]['prev'])[0] < self.get_square_index(changed_squares[0]['next'])[0]:
-                    changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next']]
-                else:
-                    changed_squares = [changed_squares[1]['prev'], changed_squares[0]['next']]
+                changed_squares = [changed_squares[1]['prev'], changed_squares[0]['next'], changed_squares[0]['prev']]
                 
         return changed_squares
 
@@ -150,6 +151,7 @@ class Board:
                 screen.blit(square[0], square[1])
 
         for piece in self.pieces_list:
+            piece.update_animation()
             piece.display()
 
 
@@ -164,6 +166,9 @@ class Piece:
         self.position = position
         board.pieces_pos_list[position[0]][position[1]] = self
         board.pieces_list.append(self)
+        self.animating = False
+        self.time = 0
+        self.duration = 30
         self.update_position(self.position)
 
     def update_position(self, position):
@@ -179,6 +184,41 @@ class Piece:
 
     def display(self):
         screen.blit(self.surf, self.rect)
+
+    def ease_in_out(self, t):
+        if t < 0.5:
+            return 8 * t ** 4
+        else:
+            return 1 - 8 * (1 - t) ** 4
+
+    def animate_move(self, start_pos, end_pos):
+        self.start_pos = (start_pos[0] * square_size, start_pos[1] * square_size)
+        self.end_pos = (end_pos[0] * square_size, end_pos[1] * square_size)
+        board.pieces_list.remove(self)
+        board.pieces_list.append(self)
+        self.animating = True
+        self.time = 0
+
+    def update_animation(self):
+        if self.animating:
+            t = self.time / self.duration
+            t = self.ease_in_out(t)
+            if t >= 1:
+                t = 1
+                self.animating = False
+                self.update_position((self.end_pos[0] // square_size, self.end_pos[1] // square_size))
+                fen = board.moves_list[board.move_number]
+                board.colour_to_move = fen.split()[1]
+                game_manager.castle_info = fen.split()[2]
+                game_manager.en_passant_target_square = fen.split()[3]
+                ui.refresh()
+                return
+
+            self.rect.topleft = (
+                self.start_pos[0] + (self.end_pos[0] - self.start_pos[0]) * t,
+                self.start_pos[1] + (self.end_pos[1] - self.start_pos[1]) * t
+            )
+            self.time += 1
 
 
 class UI:
@@ -221,7 +261,8 @@ class UI:
         with open('data.json', 'r') as file:
             ai.data = json.load(file)
 
-        ai.is_training = True
+        ai.is_training = True if not ai.is_training else False
+        print('training started' if ai.is_training else 'training stopped')
         ai.move()
 
     def flip(self):
@@ -235,6 +276,7 @@ class UI:
 
     def learn(self):
         if not ai.is_learning:
+            print('learning')
             ai.is_learning = True
             if board.user_colour == 'w':
                 ai.start_move = board.move_number + 1
@@ -243,6 +285,7 @@ class UI:
                 ai.data = json.load(file)
 
         else:
+            print('finished')
             ai.is_learning = False
             ai.end_move = board.move_number
             ai.learn()
@@ -266,15 +309,22 @@ class AI:
 
         ai_colour = 'b' if board.user_colour == 'w' else 'w'
         fen = ai.data[ai_colour][generate_fen()]
-        board.move_number += 1
-        old_castle_info = game_manager.castle_info
-        import_fen(fen)
         board.moves_list.append(fen)
-        board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
+        board.move_number += 1
 
-        is_castle = True if old_castle_info != game_manager.castle_info else False 
-        squares = board.get_positions_changed(board.move_number - 1, board.move_number, is_castle)
-        board.move_squares_list.append([board.get_square_index(square) for square in squares])
+        squares = board.get_positions_changed(board.move_number - 1, board.move_number)
+        if len(squares) == 4:
+            game_manager.move_piece(squares[0], squares[2])
+            game_manager.move_piece(squares[1], squares[3])
+        elif len(squares) == 3:
+            game_manager.move_piece(squares[0], squares[1])
+            board.pieces_list.remove(board.get_piece_on_square(squares[2]))
+        else:
+            game_manager.move_piece(squares[0], squares[1])
+            piece = board.get_piece_on_square(squares[1])
+            if piece: board.pieces_list.remove(piece)
+
+        board.move_squares_list.append([board.get_square_index(squares[0]), board.get_square_index(squares[1])])
         board.update_move_squares()
 
     def learn(self):
@@ -300,6 +350,13 @@ class GameManager:
 
     def update(self):
         pass
+
+    def move_piece(self, start_square, end_square):
+        start_index = board.get_square_index(start_square)
+        end_index = board.get_square_index(end_square)
+
+        piece = board.get_piece_on_square(start_square)
+        piece.animate_move(start_index, end_index)
 
     def index_to_chess_notation(self, index):
         files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
@@ -657,12 +714,12 @@ while running:
                 if board.move_number == len(board.moves_list) - 1 and board.move_number:
                     board.move_number -= 1
                     board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
-                    ui.refresh()
                     import_fen(board.moves_list[board.move_number])
 
                     board.move_squares_list.pop()
                     board.moves_list.pop()
                     board.update_move_squares()
+                    ui.refresh()
 
     screen.fill('#272521')
 
