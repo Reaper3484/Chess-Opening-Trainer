@@ -32,6 +32,7 @@ class Board:
         self.colour_to_move = 'w'
         self.move_squares = []
         self.move_squares_list = []
+        self.possible_moves_list = []
         self.initialise_board()
 
     def initialise_board(self):
@@ -48,8 +49,13 @@ class Board:
                     self.square_list[i][j] = (square_surf, square_rect, dark_square_color)
 
     def get_piece_on_square(self, square):
-        for piece in board.pieces_list:
+        for piece in self.pieces_list:
             if piece.get_square() == square:
+                return piece
+
+    def get_piece_on_pos(self, pos):
+        for piece in self.pieces_list:
+            if piece.get_position() == pos:
                 return piece
 
     def get_square_index(self, square):
@@ -57,6 +63,9 @@ class Board:
             if square in sublist:
                 return (i, sublist.index(square))
 
+    def get_square(self, index):
+        return self.square_list[index[0]][index[1]]
+    
     def closest_point(self, point, points):
         min_distance = float('inf')
         closest = None
@@ -68,6 +77,11 @@ class Board:
                 closest = p
         
         return closest
+
+    def highlight_possible_moves(self):
+        for x, y in self.possible_moves_list:
+            center = (x * square_size + square_size // 2, y * square_size + square_size // 2)
+            pygame.draw.circle(screen, 'green', center, 10)
 
     def update_move_squares(self, index=None):
         if self.move_squares:
@@ -152,6 +166,8 @@ class Board:
         for piece in self.pieces_list:
             piece.display()
 
+        self.highlight_possible_moves()
+
 
 class Piece:
     picked = None
@@ -179,6 +195,208 @@ class Piece:
 
     def display(self):
         screen.blit(self.surf, self.rect)
+
+
+class Rook(Piece):
+    def get_moves(self, only_attack_moves=False):
+
+        move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        possible_moves = []
+
+        for offset in move_offsets:
+            x, y = self.get_position()
+            while True:
+                x += offset[0]
+                y += offset[1]
+
+                if 0 <= x < 8 and 0 <= y < 8:
+                    target_square = board.square_list[x][y]                
+                    piece = board.get_piece_on_square(target_square)
+                    if not piece:
+                        possible_moves.append((x, y))
+                    else:
+                        if piece.colour != self.colour:
+                            possible_moves.append((x, y))
+                        break
+                else:
+                    break
+
+        return possible_moves
+
+
+class King(Piece):
+    def get_moves(self, only_attack_moves=False):
+        move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
+        possible_moves = []
+
+        for i in [0, 7]:
+            pos = (i, self.get_position()[1])
+            rook = board.get_piece_on_pos(pos)
+            if rook and rook.id.lower() == 'r' and rook.colour == self.colour:
+                if game_manager.castle(self, rook, self.get_position(), to_castle=False):
+                    possible_moves.append(pos)
+                
+        for offset in move_offsets:
+            x, y = self.get_position()
+            x += offset[0]
+            y += offset[1]
+
+            if 0 <= x < 8 and 0 <= y < 8:
+                target_square = board.square_list[x][y]                
+                piece = board.get_piece_on_square(target_square)
+                if not piece:
+                    possible_moves.append((x, y))
+                else:
+                    if piece.colour != self.colour:
+                        possible_moves.append((x, y))
+
+        return possible_moves
+
+
+class Queen(Piece):
+    def get_moves(self, only_attack_moves=False):
+        move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
+        possible_moves = []
+
+        for offset in move_offsets:
+            x, y = self.get_position()
+            while True:
+                x += offset[0]
+                y += offset[1]
+
+                if 0 <= x < 8 and 0 <= y < 8:
+                    target_square = board.square_list[x][y]                
+                    piece = board.get_piece_on_square(target_square)
+                    if not piece:
+                        possible_moves.append((x, y))
+                    else:
+                        if piece.colour != self.colour:
+                            possible_moves.append((x, y))
+                        break
+                else:
+                    break
+
+        return possible_moves
+    
+
+class Knight(Piece):
+    def get_moves(self, only_attack_moves=False):
+        move_offsets = [(-2, -1), (-2, 1), (2, -1), (2, 1),
+                        (-1, -2), (-1, 2), (1, -2), (1, 2)]
+        possible_moves = []
+
+        for offset in move_offsets:
+            x, y = self.get_position()
+            x += offset[0]
+            y += offset[1]
+
+            if 0 <= x < 8 and 0 <= y < 8:
+                target_square = board.square_list[x][y]                
+                piece = board.get_piece_on_square(target_square)
+                if not piece:
+                    possible_moves.append((x, y))
+                else:
+                    if piece.colour != self.colour:
+                        possible_moves.append((x, y))
+
+        return possible_moves
+
+
+class Bishop(Piece):
+    def get_moves(self, only_attack_moves=False):
+        move_offsets = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
+        possible_moves = []
+
+        for offset in move_offsets:
+            x, y = self.get_position()
+            while True:
+                x += offset[0]
+                y += offset[1]
+
+                if 0 <= x < 8 and 0 <= y < 8:
+                    target_square = board.square_list[x][y]                
+                    piece = board.get_piece_on_square(target_square)
+                    if not piece:
+                        possible_moves.append((x, y))
+                    else:
+                        if piece.colour != self.colour:
+                            possible_moves.append((x, y))
+                        break
+                else:
+                    break
+
+        return possible_moves
+
+
+class Pawn(Piece):
+    def get_moves(self, only_attack_moves=False):
+        if self.colour == board.user_colour:
+            move_offsets = [(0, -1), (0, -2), (1, -1), (-1, -1)]
+            initial_y = 6
+        else:
+            move_offsets = [(0, 1), (0, 2), (1, 1), (-1, 1)]
+            initial_y = 1
+
+        possible_moves = []
+
+        if only_attack_moves:
+            for offset in move_offsets:
+                x, y = self.get_position()
+                x += offset[0]
+                y += offset[1]
+
+                if not (0 <= x < 8 and 0 <= y < 8):
+                    continue
+
+                # Forward_moves
+                if offset[0] == 0:
+                    continue
+
+                # En passant 
+                if abs(offset[0]) == 1:
+                    if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
+                        possible_moves.append((x, y))
+                        continue
+                
+                possible_moves.append((x, y))
+
+            return possible_moves
+
+        for offset in move_offsets:
+            x, y = self.get_position()
+            x += offset[0]
+            y += offset[1]
+
+            if not (0 <= x < 8 and 0 <= y < 8):
+                continue
+
+            # Initial two square move
+            if abs(offset[1]) == 2:
+                x, y = self.get_position()
+                if y != initial_y:
+                    continue
+
+                sq1 = board.square_list[x][y + move_offsets[0][1]]
+                sq2 = board.square_list[x][y + offset[1]]
+                if not (board.get_piece_on_square(sq1) or board.get_piece_on_square(sq2)):
+                    possible_moves.append((x, y + offset[1]))
+                continue
+
+            # En passant 
+            if abs(offset[0]) == 1:
+                if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
+                    possible_moves.append((x, y))
+                    continue
+
+            target_square = board.square_list[x][y]                
+            piece = board.get_piece_on_square(target_square)
+            if not piece and offset[0] == 0:
+                possible_moves.append((x, y))
+            elif piece and offset[0] != 0:
+                if piece.colour != self.colour:
+                    possible_moves.append((x, y))
+
+        return possible_moves
 
 
 class UI:
@@ -378,7 +596,7 @@ class GameManager:
 
         self.castle_info = '-' if not self.castle_info else self.castle_info
 
-    def castle(self, king, rook, old_pos):
+    def castle(self, king, rook, old_pos, to_castle=True):
         if not (king.id.lower() == 'k' and rook.id.lower() == 'r'):
             return False            
         
@@ -397,6 +615,19 @@ class GameManager:
                 sq = self.board.square_list[i][king_pos[1]]
                 if self.board.get_piece_on_square(sq):
                     return False
+
+        for piece in board.pieces_list:
+            if piece.colour != king.colour:
+                attack_positions = piece.get_moves(only_attack_moves=True)
+                for pos in attack_positions:
+                    if king_pos[0] < rook_pos[0]:
+                        for i in range(king_pos[0] + 1, rook_pos[0]):
+                            if pos == (i, king_pos[1]):
+                                return False
+                    else:
+                        for i in range(rook_pos[0] + 1, king_pos[0]):
+                            if pos == (i , king_pos[1]):
+                                return False
         
         if self.board.user_colour == 'w':
             if (rook_pos == (0, 0) and self.castle_info.find('q') != -1) or (rook_pos == (0, 7) and self.castle_info.find('Q') != -1):
@@ -419,6 +650,9 @@ class GameManager:
         
         if not castled:
             return False
+        
+        if not to_castle:
+            return True
 
         if king.colour == 'w': 
             self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
@@ -438,39 +672,39 @@ board = Board()
 ui = UI()
 ai = AI()
 game_manager = GameManager(board, ui, ai)
-w_king = Piece('graphics/Chess-pieces/white-king.png', (4, 7), 'K')
-w_queen = Piece('graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
-w_rook1 = Piece('graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
-w_bishop1 = Piece('graphics/Chess-pieces/white-bishop.png', (2, 7), 'B')
-w_knight1 = Piece('graphics/Chess-pieces/white-knight.png', (1, 7), 'N')
-w_rook2 = Piece('graphics/Chess-pieces/white-rook.png', (7, 7), 'R')
-w_bishop2 = Piece('graphics/Chess-pieces/white-bishop.png', (5, 7), 'B')
-w_knight2 = Piece('graphics/Chess-pieces/white-knight.png', (6, 7), 'N')
-w_pawn1 = Piece('graphics/Chess-pieces/white-pawn.png', (0, 6), 'P')
-w_pawn2 = Piece('graphics/Chess-pieces/white-pawn.png', (1, 6), 'P')
-w_pawn3 = Piece('graphics/Chess-pieces/white-pawn.png', (2, 6), 'P')
-w_pawn4 = Piece('graphics/Chess-pieces/white-pawn.png', (3, 6), 'P')
-w_pawn5 = Piece('graphics/Chess-pieces/white-pawn.png', (4, 6), 'P')
-w_pawn6 = Piece('graphics/Chess-pieces/white-pawn.png', (5, 6), 'P')
-w_pawn7 = Piece('graphics/Chess-pieces/white-pawn.png', (6, 6), 'P')
-w_pawn8 = Piece('graphics/Chess-pieces/white-pawn.png', (7, 6), 'P')
+w_king = King('graphics/Chess-pieces/white-king.png', (4, 7), 'K')
+w_queen = Queen('graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
+w_rook1 = Rook('graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
+w_bishop1 = Bishop('graphics/Chess-pieces/white-bishop.png', (2, 7), 'B')
+w_knight1 = Knight('graphics/Chess-pieces/white-knight.png', (1, 7), 'N')
+w_rook2 = Rook('graphics/Chess-pieces/white-rook.png', (7, 7), 'R')
+w_bishop2 = Bishop('graphics/Chess-pieces/white-bishop.png', (5, 7), 'B')
+w_knight2 = Knight('graphics/Chess-pieces/white-knight.png', (6, 7), 'N')
+w_pawn1 = Pawn('graphics/Chess-pieces/white-pawn.png', (0, 6), 'P')
+w_pawn2 = Pawn('graphics/Chess-pieces/white-pawn.png', (1, 6), 'P')
+w_pawn3 = Pawn('graphics/Chess-pieces/white-pawn.png', (2, 6), 'P')
+w_pawn4 = Pawn('graphics/Chess-pieces/white-pawn.png', (3, 6), 'P')
+w_pawn5 = Pawn('graphics/Chess-pieces/white-pawn.png', (4, 6), 'P')
+w_pawn6 = Pawn('graphics/Chess-pieces/white-pawn.png', (5, 6), 'P')
+w_pawn7 = Pawn('graphics/Chess-pieces/white-pawn.png', (6, 6), 'P')
+w_pawn8 = Pawn('graphics/Chess-pieces/white-pawn.png', (7, 6), 'P')
 
-b_king = Piece('graphics/Chess-pieces/black-king.png', (4, 0), 'k')
-b_queen = Piece('graphics/Chess-pieces/black-queen.png', (3, 0), 'q')
-b_rook1 = Piece('graphics/Chess-pieces/black-rook.png', (0, 0), 'r')
-b_bishop1 = Piece('graphics/Chess-pieces/black-bishop.png', (2, 0), 'b')
-b_knight1 = Piece('graphics/Chess-pieces/black-knight.png', (1, 0), 'n')
-b_rook2 = Piece('graphics/Chess-pieces/black-rook.png', (7, 0), 'r')
-b_bishop2 = Piece('graphics/Chess-pieces/black-bishop.png', (5, 0), 'b')
-b_knight2 = Piece('graphics/Chess-pieces/black-knight.png', (6, 0), 'n')
-b_pawn1 = Piece('graphics/Chess-pieces/black-pawn.png', (0, 1), 'p')
-b_pawn2 = Piece('graphics/Chess-pieces/black-pawn.png', (1, 1), 'p')
-b_pawn3 = Piece('graphics/Chess-pieces/black-pawn.png', (2, 1), 'p')
-b_pawn4 = Piece('graphics/Chess-pieces/black-pawn.png', (3, 1), 'p')
-b_pawn5 = Piece('graphics/Chess-pieces/black-pawn.png', (4, 1), 'p')
-b_pawn6 = Piece('graphics/Chess-pieces/black-pawn.png', (5, 1), 'p')
-b_pawn7 = Piece('graphics/Chess-pieces/black-pawn.png', (6, 1), 'p')
-b_pawn8 = Piece('graphics/Chess-pieces/black-pawn.png', (7, 1), 'p')
+b_king = King('graphics/Chess-pieces/black-king.png', (4, 0), 'k')
+b_queen = Queen('graphics/Chess-pieces/black-queen.png', (3, 0), 'q')
+b_rook1 = Rook('graphics/Chess-pieces/black-rook.png', (0, 0), 'r')
+b_bishop1 = Bishop('graphics/Chess-pieces/black-bishop.png', (2, 0), 'b')
+b_knight1 = Knight('graphics/Chess-pieces/black-knight.png', (1, 0), 'n')
+b_rook2 = Rook('graphics/Chess-pieces/black-rook.png', (7, 0), 'r')
+b_bishop2 = Bishop('graphics/Chess-pieces/black-bishop.png', (5, 0), 'b')
+b_knight2 = Knight('graphics/Chess-pieces/black-knight.png', (6, 0), 'n')
+b_pawn1 = Pawn('graphics/Chess-pieces/black-pawn.png', (0, 1), 'p')
+b_pawn2 = Pawn('graphics/Chess-pieces/black-pawn.png', (1, 1), 'p')
+b_pawn3 = Pawn('graphics/Chess-pieces/black-pawn.png', (2, 1), 'p')
+b_pawn4 = Pawn('graphics/Chess-pieces/black-pawn.png', (3, 1), 'p')
+b_pawn5 = Pawn('graphics/Chess-pieces/black-pawn.png', (4, 1), 'p')
+b_pawn6 = Pawn('graphics/Chess-pieces/black-pawn.png', (5, 1), 'p')
+b_pawn7 = Pawn('graphics/Chess-pieces/black-pawn.png', (6, 1), 'p')
+b_pawn8 = Pawn('graphics/Chess-pieces/black-pawn.png', (7, 1), 'p')
 
 
 def import_fen(fen_string):
@@ -580,6 +814,8 @@ while running:
                             piece.get_square()[0].fill(picked_square_color)
                             board.pieces_list.remove(piece)
                             board.pieces_list.append(piece)
+                            
+                            board.possible_moves_list = piece.get_moves()
                             break
 
             
@@ -600,6 +836,7 @@ while running:
                 if old_pos == new_pos:
                     Piece.picked.update_position(old_pos)
                     Piece.picked = None
+                    board.possible_moves_list = []
                     continue
 
                 Piece.picked.update_position(new_pos)
@@ -616,12 +853,14 @@ while running:
                 if not valid_move:
                     Piece.picked.update_position(old_pos)
                     Piece.picked = None
+                    board.possible_moves_list = []
                     continue
 
                 game_manager.en_passant(Piece.picked, old_pos)
                 game_manager.update_castling(Piece.picked, old_pos)
 
                 Piece.picked = None
+                board.possible_moves_list = []
                 board.move_squares_list.append([old_pos, new_pos])
                 board.move_number += 1
                 board.update_move_squares()
