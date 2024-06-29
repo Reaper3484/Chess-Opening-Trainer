@@ -33,6 +33,7 @@ class Board:
         self.move_squares = []
         self.move_squares_list = []
         self.possible_moves_list = []
+        self.hover_pos = None    
         self.initialise_board()
 
     def initialise_board(self):
@@ -80,8 +81,14 @@ class Board:
 
     def highlight_possible_moves(self):
         for x, y in self.possible_moves_list:
+            if (x, y) == self.hover_pos:
+                pygame.draw.rect(screen, 'grey', (x * square_size, y * square_size, square_size, square_size), 10)
+
             center = (x * square_size + square_size // 2, y * square_size + square_size // 2)
-            pygame.draw.circle(screen, 'green', center, 10)
+            if self.get_piece_on_pos((x, y)):
+                pygame.draw.circle(screen, 'grey', center, square_size // 2, 10)
+            else:
+                pygame.draw.circle(screen, 'grey', center, 20)
 
     def update_move_squares(self, index=None):
         if self.move_squares:
@@ -163,10 +170,10 @@ class Board:
                 square = self.square_list[i][j]
                 screen.blit(square[0], square[1])
 
+        self.highlight_possible_moves()
+
         for piece in self.pieces_list:
             piece.display()
-
-        self.highlight_possible_moves()
 
 
 class Piece:
@@ -840,6 +847,16 @@ while running:
         if event.type == MOUSEMOTION:
             if Piece.picked:
                 Piece.picked.rect.center = event.pos
+                found = False
+
+                for pos in board.possible_moves_list:
+                    sq = board.get_square(pos)
+                    if sq[1].collidepoint(event.pos):
+                        board.hover_pos = pos
+                        found = True
+                
+                if not found:
+                    board.hover_pos = None
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked and event.button == 1:
@@ -869,15 +886,16 @@ while running:
 
                 Piece.picked = None
                 board.possible_moves_list = []
+                board.hover_pos = None
                 board.move_squares_list.append([old_pos, new_pos])
                 board.move_number += 1
                 board.update_move_squares()
                 board.moves_list.append(generate_fen())
                 board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
-                game_manager.update_legal_moves()
 
                 ui.refresh()
                 ai.move()
+                game_manager.update_legal_moves()
                 
                 
         if event.type == KEYDOWN:
