@@ -449,6 +449,7 @@ class UI:
         fen = old_fen.split()[0][-2::-1] + ' ' + ' '.join(old_fen.split()[1:])
         
         import_fen(fen)
+        game_manager.update_legal_moves()
         ui.refresh()
 
     def learn(self):
@@ -509,10 +510,7 @@ class AI:
 
 
 class GameManager:
-    def __init__(self, board, ui, ai):
-        self.board = board
-        self.ui = ui
-        self.ai = ai
+    def __init__(self):
         self.en_passant_target_square = '-'
         self.castle_info = 'KQkq'
         self.castling_in_progress = False
@@ -547,10 +545,8 @@ class GameManager:
         for piece in board.pieces_list:
             if piece.colour != board.colour_to_move:
                 attack_moves = piece.generate_moves(only_attack_moves=True)
-                for move in attack_moves:
-                    if move == king_position:
-                        return True
-        
+                if king_position in attack_moves:
+                    return True
         return False
 
     def update_legal_moves(self):
@@ -558,16 +554,18 @@ class GameManager:
             if piece.id.lower() == 'k' and piece.colour == board.colour_to_move:
                 king = piece
 
-        for piece in board.pieces_list:
+        for piece in board.pieces_list.copy():
             if piece.colour == board.colour_to_move:
                 legal_moves = []
                 possible_moves = piece.generate_moves()
+                old_pos = piece.get_position()
+
                 for move in possible_moves:
-                    old_pos = piece.get_position()
                     enemy_piece = board.get_piece_on_pos(move)
                     if enemy_piece and enemy_piece.colour != board.colour_to_move:
                         board.pieces_list.remove(enemy_piece)
                     piece.update_position(move) 
+
                     if not self.is_king_in_check(king):
                        legal_moves.append(move) 
 
@@ -583,8 +581,8 @@ class GameManager:
         if pawn.id.lower() == 'p' and self.en_passant_target_square != '-':
             target_index = self.chess_notation_to_index(self.en_passant_target_square)
             if new_pos == target_index:
-                captured_pawn = self.board.get_piece_on_square(self.board.square_list[new_pos[0]][old_pos[1]])
-                self.board.pieces_list.remove(captured_pawn)
+                captured_pawn = board.get_piece_on_square(board.square_list[new_pos[0]][old_pos[1]])
+                board.pieces_list.remove(captured_pawn)
                 self.en_passant_target_square = '-'
                 return
 
@@ -640,7 +638,7 @@ class GameManager:
 
         # Check if path is attacked
         self.castling_in_progress = True
-        for piece in self.board.pieces_list:
+        for piece in board.pieces_list:
             if piece.colour != king.colour:
                 attack_positions = piece.generate_moves(only_attack_moves=True)
                 for pos in attack_positions:
@@ -684,18 +682,15 @@ class GameManager:
             self.castle_info = ''.join([char for char in self.castle_info if char.isupper()])
 
         self.castle_info = '-' if not self.castle_info else self.castle_info
-
-        king.update_position(new_king_pos) 
         rook.update_position(new_rook_pos) 
-
-        return True
+        return new_king_pos
 
 
 # Initializing Board and Chess Pieces with default positions
 board = Board()
 ui = UI()
 ai = AI()
-game_manager = GameManager(board, ui, ai)
+game_manager = GameManager()
 w_king = King('graphics/Chess-pieces/white-king.png', (4, 7), 'K')
 w_queen = Queen('graphics/Chess-pieces/white-queen.png', (3, 7), 'Q')
 w_rook1 = Rook('graphics/Chess-pieces/white-rook.png', (0, 7), 'R')
@@ -848,7 +843,6 @@ while running:
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked and event.button == 1:
-                valid_move = True
                 square = Piece.picked.get_square()
                 square[0].fill(square[2])
 
@@ -856,29 +850,19 @@ while running:
                 old_pos = Piece.picked.get_position()
                 new_pos = index // 8, index % 8
 
-                if old_pos == new_pos:
+                if new_pos not in board.possible_moves_list:
                     Piece.picked.update_position(old_pos)
                     Piece.picked = None
                     board.possible_moves_list = []
                     continue
+                
+                piece = board.get_piece_on_pos(new_pos)
+                if piece and piece.colour != board.colour_to_move: 
+                    board.pieces_list.remove(piece) 
+                elif piece and piece.colour == board.colour_to_move:
+                    new_pos = game_manager.castle(Piece.picked, piece)
 
                 Piece.picked.update_position(new_pos)
-
-                for piece in board.pieces_list:
-                    if Piece.picked != piece and piece.get_position() == new_pos:
-                        if piece.colour == Piece.picked.colour:
-                            Piece.picked.update_position(old_pos)
-                            if not game_manager.castle(Piece.picked, piece):
-                                valid_move = False
-                        else:
-                            board.pieces_list.remove(piece)
-                        break
-
-                if not valid_move:
-                    Piece.picked.update_position(old_pos)
-                    Piece.picked = None
-                    board.possible_moves_list = []
-                    continue
 
                 game_manager.en_passant(Piece.picked, old_pos)
                 game_manager.update_castling_rights(Piece.picked, old_pos)
@@ -928,6 +912,9 @@ while running:
                     board.moves_list.pop()
                     board.update_move_squares()
                     game_manager.update_legal_moves()
+            
+            elif event.key == K_f:
+                print(generate_fen())
 
     screen.fill('#272521')
 
