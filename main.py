@@ -613,6 +613,7 @@ class GameManager:
             if piece.id.lower() == 'k' and piece.colour == board.colour_to_move:
                 king = piece
 
+        no_legal_moves = True
         for piece in board.pieces_list.copy():
             if piece.colour == board.colour_to_move:
                 legal_moves = []
@@ -633,6 +634,14 @@ class GameManager:
                         board.pieces_list.append(enemy_piece)
 
                 self.legal_moves_dict[piece] = legal_moves
+                if legal_moves:
+                    no_legal_moves = False
+
+        if no_legal_moves:
+            if self.is_king_in_check(king):
+                print('Checkmate')
+            else:
+                print('Stalemate')
 
     def en_passant(self, pawn, old_pos):
         new_pos = pawn.get_position()
@@ -701,7 +710,7 @@ class GameManager:
             if piece.colour != king.colour:
                 attack_positions = piece.generate_moves(only_attack_moves=True)
                 for pos in attack_positions:
-                    if pos in path:
+                    if pos in path or pos == king_pos:
                         self.castling_in_progress = False
                         return False
 
@@ -721,9 +730,6 @@ class GameManager:
         return False
 
     def castle(self, king, rook):
-        if not self.can_castle(king, rook):
-            return False
-        
         king_pos = king.get_position()
         rook_pos = rook.get_position()
         direction = 1 if king_pos[0] < rook_pos[0] else -1
