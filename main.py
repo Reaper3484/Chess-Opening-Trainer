@@ -49,6 +49,13 @@ class Board:
                     square_surf.fill(dark_square_color)
                     self.square_list[i][j] = (square_surf, square_rect, dark_square_color)
 
+    def set_square_colour(self, square, colour=None):
+        if not colour:
+            square[0].fill(square[2])
+            return
+        
+        square[0].fill(colour)
+
     def get_piece_on_square(self, square):
         for piece in self.pieces_list:
             if piece.get_square() == square:
@@ -90,22 +97,21 @@ class Board:
             else:
                 pygame.draw.circle(screen, 'grey', center, 20)
 
-    def update_move_squares(self, index=None):
+    def update_move_squares(self):
         if self.move_squares:
-            sq1, sq2 = [board.square_list[p[0]][p[1]] for p in self.move_squares]
-            sq1[0].fill(sq1[2])
-            sq2[0].fill(sq2[2])
+            sq1, sq2 = [board.get_square(p) for p in self.move_squares]
+            board.set_square_colour(sq1)
+            board.set_square_colour(sq2)
 
-        index = index if index else board.move_number
-        index -= 1
+        index = board.move_number - 1
 
         if index < 0:
             return
 
         self.move_squares = self.move_squares_list[index]
-        sq1, sq2 = [board.square_list[p[0]][p[1]] for p in self.move_squares_list[index]]
-        sq1[0].fill(prev_square_color)
-        sq2[0].fill(next_square_color)
+        sq1, sq2 = [board.get_square(p) for p in self.move_squares_list[index]]
+        board.set_square_colour(sq1, prev_square_color)
+        board.set_square_colour(sq2, next_square_color)
 
     def get_positions_changed(self, prev_move_number, next_move_number):
         changed_squares = [
@@ -245,33 +251,6 @@ class Piece:
             self.time += 1
 
 
-class Rook(Piece):
-    def generate_moves(self, only_attack_moves=False):
-
-        move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-        possible_moves = []
-
-        for offset in move_offsets:
-            x, y = self.get_position()
-            while True:
-                x += offset[0]
-                y += offset[1]
-
-                if 0 <= x < 8 and 0 <= y < 8:
-                    target_square = board.square_list[x][y]                
-                    piece = board.get_piece_on_square(target_square)
-                    if not piece:
-                        possible_moves.append((x, y))
-                    else:
-                        if piece.colour != self.colour:
-                            possible_moves.append((x, y))
-                        break
-                else:
-                    break
-
-        return possible_moves
-
-
 class King(Piece):
     def generate_moves(self, only_attack_moves=False):
         move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
@@ -290,7 +269,7 @@ class King(Piece):
             y += offset[1]
 
             if 0 <= x < 8 and 0 <= y < 8:
-                target_square = board.square_list[x][y]                
+                target_square = board.get_square((x, y))
                 piece = board.get_piece_on_square(target_square)
                 if not piece:
                     possible_moves.append((x, y))
@@ -313,7 +292,7 @@ class Queen(Piece):
                 y += offset[1]
 
                 if 0 <= x < 8 and 0 <= y < 8:
-                    target_square = board.square_list[x][y]                
+                    target_square = board.get_square((x, y))
                     piece = board.get_piece_on_square(target_square)
                     if not piece:
                         possible_moves.append((x, y))
@@ -339,7 +318,7 @@ class Knight(Piece):
             y += offset[1]
 
             if 0 <= x < 8 and 0 <= y < 8:
-                target_square = board.square_list[x][y]                
+                target_square = board.get_square((x, y))
                 piece = board.get_piece_on_square(target_square)
                 if not piece:
                     possible_moves.append((x, y))
@@ -362,7 +341,34 @@ class Bishop(Piece):
                 y += offset[1]
 
                 if 0 <= x < 8 and 0 <= y < 8:
-                    target_square = board.square_list[x][y]                
+                    target_square = board.get_square((x, y))
+                    piece = board.get_piece_on_square(target_square)
+                    if not piece:
+                        possible_moves.append((x, y))
+                    else:
+                        if piece.colour != self.colour:
+                            possible_moves.append((x, y))
+                        break
+                else:
+                    break
+
+        return possible_moves
+
+
+class Rook(Piece):
+    def generate_moves(self, only_attack_moves=False):
+
+        move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        possible_moves = []
+
+        for offset in move_offsets:
+            x, y = self.get_position()
+            while True:
+                x += offset[0]
+                y += offset[1]
+
+                if 0 <= x < 8 and 0 <= y < 8:
+                    target_square = board.get_square((x, y))
                     piece = board.get_piece_on_square(target_square)
                     if not piece:
                         possible_moves.append((x, y))
@@ -387,15 +393,15 @@ class Pawn(Piece):
 
         possible_moves = []
 
-        if only_attack_moves:
-            for offset in move_offsets:
-                x, y = self.get_position()
-                x += offset[0]
-                y += offset[1]
+        for offset in move_offsets:
+            x, y = self.get_position()
+            x += offset[0]
+            y += offset[1]
 
-                if not (0 <= x < 8 and 0 <= y < 8):
-                    continue
+            if not (0 <= x < 8 and 0 <= y < 8):
+                continue
 
+            if only_attack_moves:
                 # Forward_moves
                 if offset[0] == 0:
                     continue
@@ -408,41 +414,32 @@ class Pawn(Piece):
                 
                 possible_moves.append((x, y))
 
-            return possible_moves
+            else:
+                # Initial two square move
+                if abs(offset[1]) == 2:
+                    x, y = self.get_position()
+                    if y != initial_y:
+                        continue
 
-        for offset in move_offsets:
-            x, y = self.get_position()
-            x += offset[0]
-            y += offset[1]
-
-            if not (0 <= x < 8 and 0 <= y < 8):
-                continue
-
-            # Initial two square move
-            if abs(offset[1]) == 2:
-                x, y = self.get_position()
-                if y != initial_y:
+                    sq1 = board.get_square((x, y + move_offsets[0][1]))
+                    sq2 = board.get_square((x, y + offset[1]))
+                    if not (board.get_piece_on_square(sq1) or board.get_piece_on_square(sq2)):
+                        possible_moves.append((x, y + offset[1]))
                     continue
 
-                sq1 = board.square_list[x][y + move_offsets[0][1]]
-                sq2 = board.square_list[x][y + offset[1]]
-                if not (board.get_piece_on_square(sq1) or board.get_piece_on_square(sq2)):
-                    possible_moves.append((x, y + offset[1]))
-                continue
+                # En passant 
+                if abs(offset[0]) == 1:
+                    if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
+                        possible_moves.append((x, y))
+                        continue
 
-            # En passant 
-            if abs(offset[0]) == 1:
-                if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
+                target_square = board.get_square((x, y))
+                piece = board.get_piece_on_square(target_square)
+                if not piece and offset[0] == 0:
                     possible_moves.append((x, y))
-                    continue
-
-            target_square = board.square_list[x][y]                
-            piece = board.get_piece_on_square(target_square)
-            if not piece and offset[0] == 0:
-                possible_moves.append((x, y))
-            elif piece and offset[0] != 0:
-                if piece.colour != self.colour:
-                    possible_moves.append((x, y))
+                elif piece and offset[0] != 0:
+                    if piece.colour != self.colour:
+                        possible_moves.append((x, y))
 
         return possible_moves
 
@@ -605,7 +602,7 @@ class GameManager:
     def is_king_in_check(self, king):
         king_position = king.get_position()
         for piece in board.pieces_list:
-            if piece.colour != board.colour_to_move:
+            if piece.colour != king.colour:
                 attack_moves = piece.generate_moves(only_attack_moves=True)
                 if king_position in attack_moves:
                     return True
@@ -643,7 +640,7 @@ class GameManager:
         if pawn.id.lower() == 'p' and self.en_passant_target_square != '-':
             target_index = self.chess_notation_to_index(self.en_passant_target_square)
             if new_pos == target_index:
-                captured_pawn = board.get_piece_on_square(board.square_list[new_pos[0]][old_pos[1]])
+                captured_pawn = board.get_piece_on_pos((new_pos[0], old_pos[1]))
                 board.pieces_list.remove(captured_pawn)
                 self.en_passant_target_square = '-'
                 return
@@ -893,7 +890,7 @@ while running:
                                 continue
                             Piece.picked = piece
                             piece.rect.center = event.pos
-                            piece.get_square()[0].fill(picked_square_color)
+                            board.set_square_colour(piece.get_square(), picked_square_color)
                             board.pieces_list.remove(piece)
                             board.pieces_list.append(piece)
                             board.possible_moves_list = game_manager.legal_moves_dict[piece]
@@ -915,8 +912,7 @@ while running:
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked and event.button == 1:
-                square = Piece.picked.get_square()
-                square[0].fill(square[2])
+                board.set_square_colour(Piece.picked.get_square())
 
                 index = board.square_centers.index(board.closest_point(Piece.picked.rect.center, board.square_centers))
                 old_pos = Piece.picked.get_position()
