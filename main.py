@@ -235,6 +235,7 @@ class Piece:
                 game_manager.castle_info = fen.split()[2]
                 game_manager.en_passant_target_square = fen.split()[3]
                 ui.refresh()
+                game_manager.update_legal_moves()
                 return
 
             self.rect.topleft = (
@@ -530,9 +531,6 @@ class AI:
                      "AI as white": {}}
 
     def move(self):
-        if not ai.is_training:
-            return
-
         ai_colour = 'b' if board.user_colour == 'w' else 'w'
         fen = ai.data[ai_colour][generate_fen()]
         board.moves_list.append(fen)
@@ -950,9 +948,11 @@ while running:
                 board.moves_list.append(generate_fen())
                 board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
 
-                ui.refresh()
-                ai.move()
-                game_manager.update_legal_moves()
+                if ai.is_training:
+                    ai.move()
+                else:
+                    ui.refresh()
+                    game_manager.update_legal_moves()
                 
                 
         if event.type == KEYDOWN:
