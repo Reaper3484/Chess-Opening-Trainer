@@ -1,6 +1,6 @@
 {
     "w": {
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/ w KQkq -": "RNBKQBNR/PPP1PPPP/8/8/3P4/8/pppppppp/rnbkqbnr/ b KQkq -",
+        "rnbqkbnr/ppppppppBNR//8/8/8/8/PPPPPPPP/RNBQK w KQkq -": "RNBKQBNR/PPP1PPPP/8/8/3P4/8/pppppppp/rnbkqbnr/ b KQkq -",
         "RNBKQBNR/PPP1PPPP/8/8/3Pp3/8/pppp1ppp/rnbkqbnr/ w KQkq e3": "RNBKQBNR/PPP1PPPP/8/8/8/4P3/pppp1ppp/rnbkqbnr/ b KQkq -",
         "RNBKQBNR/PPP1PPPP/8/8/8/4p3/pppp2pp/rnbkqbnr/ w KQkq -": "RNBKQBNR/PP2PPPP/8/8/2P5/4p3/pppp2pp/rnbkqbnr/ b KQkq -",
         "RNBKQBNR/PP2PPPP/8/8/1pP5/4p3/p1pp2pp/rnbkqbnr/ w KQkq b3": "RNBKQBNR/PP2PPPP/8/8/8/1P2p3/p1pp2pp/rnbkqbnr/ b KQkq -"
@@ -15,6 +15,10 @@
         "rnbqkbnr/pppppppp/8/8/8/5B2/PPPPPPPP/RNBQK1NR/ b KQkq -": "rnb1kbnr/pppppppp/3q4/8/8/5B2/PPPPPPPP/RNBQK1NR/ w KQkq -",
         "rnb1kbnr/pppppppp/3q4/8/8/5BN1/PPPPPPPP/RNBQK2R/ b KQkq -": "rn2kbnr/pppppppp/2bq4/8/8/5BN1/PPPPPPPP/RNBQK2R/ w KQkq -",
         "rn2kbnr/pppppppp/2bq4/8/8/5BN1/PPPPPPPP/RNBQ1RK1/ b kq -": "r3kbnr/pppppppp/1nbq4/8/8/5BN1/PPPPPPPP/RNBQ1RK1/ w kq -",
-        "r3kbnr/pppppppp/1nbq4/8/8/5BNP/PPPPPPP1/RNBQ1RK1/ b kq -": "2kr1bnr/pppppppp/1nbq4/8/8/5BNP/PPPPPPP1/RNBQ1RK1/ w - -"
+        "r3kbnr/pppppppp/1nbq4/8/8/5BNP/PPPPPPP1/RNBQ1RK1/ b kq -": "2kr1bnr/pppppppp/1nbq4/8/8/5BNP/PPPPPPP1/RNBQ1RK1/ w - -",
+        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR/ b KQkq e3": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR/ w KQkq e6",
+        "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ w KQkq -",
+        "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R/ b KQkq -": "r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R/ w KQkq -",
+        "r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1/ b kq -": "r2qkbnr/ppp2ppp/2npb3/4p3/2B1P3/5N2/PPPP1PPP/RNBQ1RK1/ w kq -"
     }
 }

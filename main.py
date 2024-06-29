@@ -198,7 +198,7 @@ class Piece:
 
 
 class Rook(Piece):
-    def get_moves(self, only_attack_moves=False):
+    def generate_moves(self, only_attack_moves=False):
 
         move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         possible_moves = []
@@ -225,7 +225,7 @@ class Rook(Piece):
 
 
 class King(Piece):
-    def get_moves(self, only_attack_moves=False):
+    def generate_moves(self, only_attack_moves=False):
         move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
         possible_moves = []
 
@@ -233,7 +233,7 @@ class King(Piece):
             pos = (i, self.get_position()[1])
             rook = board.get_piece_on_pos(pos)
             if rook and rook.id.lower() == 'r' and rook.colour == self.colour:
-                if game_manager.castle(self, rook, self.get_position(), to_castle=False):
+                if game_manager.can_castle(self, rook):
                     possible_moves.append(pos)
                 
         for offset in move_offsets:
@@ -254,7 +254,7 @@ class King(Piece):
 
 
 class Queen(Piece):
-    def get_moves(self, only_attack_moves=False):
+    def generate_moves(self, only_attack_moves=False):
         move_offsets = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)]
         possible_moves = []
 
@@ -280,7 +280,7 @@ class Queen(Piece):
     
 
 class Knight(Piece):
-    def get_moves(self, only_attack_moves=False):
+    def generate_moves(self, only_attack_moves=False):
         move_offsets = [(-2, -1), (-2, 1), (2, -1), (2, 1),
                         (-1, -2), (-1, 2), (1, -2), (1, 2)]
         possible_moves = []
@@ -303,7 +303,7 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
-    def get_moves(self, only_attack_moves=False):
+    def generate_moves(self, only_attack_moves=False):
         move_offsets = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
         possible_moves = []
 
@@ -329,7 +329,7 @@ class Bishop(Piece):
 
 
 class Pawn(Piece):
-    def get_moves(self, only_attack_moves=False):
+    def generate_moves(self, only_attack_moves=False):
         if self.colour == board.user_colour:
             move_offsets = [(0, -1), (0, -2), (1, -1), (-1, -1)]
             initial_y = 6
@@ -515,6 +515,8 @@ class GameManager:
         self.ai = ai
         self.en_passant_target_square = '-'
         self.castle_info = 'KQkq'
+        self.castling_in_progress = False
+        self.legal_moves_dict = {}
 
     def update(self):
         pass
@@ -540,6 +542,41 @@ class GameManager:
         
         return (file_index, rank_index)
 
+    def is_king_in_check(self, king):
+        king_position = king.get_position()
+        for piece in board.pieces_list:
+            if piece.colour != board.colour_to_move:
+                attack_moves = piece.generate_moves(only_attack_moves=True)
+                for move in attack_moves:
+                    if move == king_position:
+                        return True
+        
+        return False
+
+    def update_legal_moves(self):
+        for piece in board.pieces_list:
+            if piece.id.lower() == 'k' and piece.colour == board.colour_to_move:
+                king = piece
+
+        for piece in board.pieces_list:
+            if piece.colour == board.colour_to_move:
+                legal_moves = []
+                possible_moves = piece.generate_moves()
+                for move in possible_moves:
+                    old_pos = piece.get_position()
+                    enemy_piece = board.get_piece_on_pos(move)
+                    if enemy_piece and enemy_piece.colour != board.colour_to_move:
+                        board.pieces_list.remove(enemy_piece)
+                    piece.update_position(move) 
+                    if not self.is_king_in_check(king):
+                       legal_moves.append(move) 
+
+                    piece.update_position(old_pos)
+                    if enemy_piece:
+                        board.pieces_list.append(enemy_piece)
+
+                self.legal_moves_dict[piece] = legal_moves
+
     def en_passant(self, pawn, old_pos):
         new_pos = pawn.get_position()
 
@@ -560,99 +597,86 @@ class GameManager:
         else:
             self.en_passant_target_square = '-'
 
-    def update_castling(self, piece, pos):
-        if piece.id == 'K':
-            self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
-            self.castle_info = '-' if not self.castle_info else self.castle_info
-            return
-        elif piece.id == 'k':
-            self.castle_info = ''.join([char for char in self.castle_info if char.isupper()])
+    def update_castling_rights(self, piece, pos):
+        if piece.id.lower() == 'k': 
+            if piece.id == 'K':
+                self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
+            else:
+                self.castle_info = ''.join([char for char in self.castle_info if char.isupper()])
             self.castle_info = '-' if not self.castle_info else self.castle_info
             return
 
         if not piece.id.lower() == 'r':
             return
 
-        if pos == (0, 0):
-            if board.user_colour == 'w':
-                self.castle_info = self.castle_info.replace('q', '')
-            else:
-                self.castle_info = self.castle_info.replace('K', '')
-        elif pos == (7, 0):
-            if board.user_colour == 'w':
-                self.castle_info = self.castle_info.replace('k', '')
-            else:
-                self.castle_info = self.castle_info.replace('Q', '')
-        elif pos == (0, 7):
-            if board.user_colour == 'w':
-                self.castle_info = self.castle_info.replace('Q', '')
-            else:
-                self.castle_info = self.castle_info.replace('k', '')
-        elif pos == (7, 7):
-            if board.user_colour == 'w':
-                self.castle_info = self.castle_info.replace('K', '')
-            else:
-                self.castle_info = self.castle_info.replace('q', '')
+        rook_pos_map_w = {(0, 0): 'q', (7, 0): 'k', (0, 7): 'Q', (7, 7): 'K'}
+        rook_pos_map_b = {(0, 0): 'k', (7, 0): 'Q', (0, 7): 'k', (7, 7): 'q'}
 
-        self.castle_info = '-' if not self.castle_info else self.castle_info
+        if board.user_colour == 'w':
+            char_to_remove = rook_pos_map_w.get(pos)
+        else:
+            char_to_remove = rook_pos_map_b.get(pos)
 
-    def castle(self, king, rook, old_pos, to_castle=True):
+        if char_to_remove:
+            self.castle_info = self.castle_info.replace(char_to_remove, '')
+            self.castle_info = '-' if not self.castle_info else self.castle_info
+
+    def can_castle(self, king, rook):
+        if self.castling_in_progress:
+            return False
+
         if not (king.id.lower() == 'k' and rook.id.lower() == 'r'):
-            return False            
-        
-        king_pos = old_pos
+            return False
+
+        king_pos = king.get_position()
         rook_pos = rook.get_position()
-        castled = False
+        direction = 1 if king_pos[0] < rook_pos[0] else -1
+        path = [(king_pos[0] + i * direction, king_pos[1]) for i in range(1, abs(king_pos[0] - rook_pos[0]))]
 
-        if king_pos[0] < rook_pos[0]:
-            for i in range(king_pos[0] + 1, rook_pos[0]):
-                sq = self.board.square_list[i][king_pos[1]]
-                if self.board.get_piece_on_square(sq):
-                    return False
+        # Check if path is clear
+        for sq in path:
+            if board.get_piece_on_pos(sq):
+                return False
 
-        else:
-            for i in range(rook_pos[0] + 1, king_pos[0]):
-                sq = self.board.square_list[i][king_pos[1]]
-                if self.board.get_piece_on_square(sq):
-                    return False
-
-        for piece in board.pieces_list:
+        # Check if path is attacked
+        self.castling_in_progress = True
+        for piece in self.board.pieces_list:
             if piece.colour != king.colour:
-                attack_positions = piece.get_moves(only_attack_moves=True)
+                attack_positions = piece.generate_moves(only_attack_moves=True)
                 for pos in attack_positions:
-                    if king_pos[0] < rook_pos[0]:
-                        for i in range(king_pos[0] + 1, rook_pos[0]):
-                            if pos == (i, king_pos[1]):
-                                return False
-                    else:
-                        for i in range(rook_pos[0] + 1, king_pos[0]):
-                            if pos == (i , king_pos[1]):
-                                return False
-        
-        if self.board.user_colour == 'w':
-            if (rook_pos == (0, 0) and self.castle_info.find('q') != -1) or (rook_pos == (0, 7) and self.castle_info.find('Q') != -1):
-                king_pos = (2, king_pos[1])
-                rook_pos = (3, rook_pos[1])
-                castled = True
-            elif (rook_pos == (7, 0) and self.castle_info.find('k') != -1) or (rook_pos == (7, 7) and self.castle_info.find('K') != -1):
-                king_pos = (6, king_pos[1])
-                rook_pos = (5, rook_pos[1])
-                castled = True
+                    if pos in path:
+                        self.castling_in_progress = False
+                        return False
+
+        self.castling_in_progress = False
+
+        if board.user_colour == 'w':
+            if (rook_pos == (0, 0) and 'q' in self.castle_info) or (rook_pos == (0, 7) and 'Q' in self.castle_info):
+                return True
+            if (rook_pos == (7, 0) and 'k' in self.castle_info) or (rook_pos == (7, 7) and 'K' in self.castle_info):
+                return True
         else:
-            if (rook_pos == (0, 0) and self.castle_info.find('K') != -1) or (rook_pos == (0, 7) and self.castle_info.find('k') != -1):
-                king_pos = (1, king_pos[1])
-                rook_pos = (2, rook_pos[1])
-                castled = True
-            elif (rook_pos == (7, 0) and self.castle_info.find('Q') != -1) or (rook_pos == (7, 7) and self.castle_info.find('q') != -1):
-                king_pos = (5, king_pos[1])
-                rook_pos = (4, rook_pos[1])
-                castled = True
-        
-        if not castled:
+            if (rook_pos == (0, 0) and 'K' in self.castle_info) or (rook_pos == (0, 7) and 'k' in self.castle_info):
+                return True
+            if (rook_pos == (7, 0) and 'Q' in self.castle_info) or (rook_pos == (7, 7) and 'q' in self.castle_info):
+                return True
+
+        return False
+
+    def castle(self, king, rook):
+        if not self.can_castle(king, rook):
             return False
         
-        if not to_castle:
-            return True
+        king_pos = king.get_position()
+        rook_pos = rook.get_position()
+        direction = 1 if king_pos[0] < rook_pos[0] else -1
+
+        if direction == 1:  # King-side castling
+            new_king_pos = (king_pos[0] + 2, king_pos[1])
+            new_rook_pos = (king_pos[0] + 1, rook_pos[1])
+        else:  # Queen-side castling
+            new_king_pos = (king_pos[0] - 2, king_pos[1])
+            new_rook_pos = (king_pos[0] - 1, rook_pos[1])        
 
         if king.colour == 'w': 
             self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
@@ -661,8 +685,8 @@ class GameManager:
 
         self.castle_info = '-' if not self.castle_info else self.castle_info
 
-        king.update_position(king_pos) 
-        rook.update_position(rook_pos) 
+        king.update_position(new_king_pos) 
+        rook.update_position(new_rook_pos) 
 
         return True
 
@@ -784,6 +808,7 @@ def generate_fen():
 
 import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -')
 board.moves_list.append(generate_fen())
+game_manager.update_legal_moves()
 
 clock = pygame.time.Clock()
 running = True
@@ -814,10 +839,8 @@ while running:
                             piece.get_square()[0].fill(picked_square_color)
                             board.pieces_list.remove(piece)
                             board.pieces_list.append(piece)
-                            
-                            board.possible_moves_list = piece.get_moves()
+                            board.possible_moves_list = game_manager.legal_moves_dict[piece]
                             break
-
             
         if event.type == MOUSEMOTION:
             if Piece.picked:
@@ -844,7 +867,8 @@ while running:
                 for piece in board.pieces_list:
                     if Piece.picked != piece and piece.get_position() == new_pos:
                         if piece.colour == Piece.picked.colour:
-                            if not game_manager.castle(Piece.picked, piece, old_pos):
+                            Piece.picked.update_position(old_pos)
+                            if not game_manager.castle(Piece.picked, piece):
                                 valid_move = False
                         else:
                             board.pieces_list.remove(piece)
@@ -857,7 +881,7 @@ while running:
                     continue
 
                 game_manager.en_passant(Piece.picked, old_pos)
-                game_manager.update_castling(Piece.picked, old_pos)
+                game_manager.update_castling_rights(Piece.picked, old_pos)
 
                 Piece.picked = None
                 board.possible_moves_list = []
@@ -866,6 +890,7 @@ while running:
                 board.update_move_squares()
                 board.moves_list.append(generate_fen())
                 board.colour_to_move = 'b' if board.colour_to_move == 'w' else 'w'
+                game_manager.update_legal_moves()
 
                 ui.refresh()
                 ai.move()
@@ -902,6 +927,7 @@ while running:
                     board.move_squares_list.pop()
                     board.moves_list.pop()
                     board.update_move_squares()
+                    game_manager.update_legal_moves()
 
     screen.fill('#272521')
 
