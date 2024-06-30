@@ -114,16 +114,11 @@ class Board:
         board.set_square_colour(sq2, next_square_color)
 
     def get_positions_changed(self, prev_move_number, next_move_number):
-        changed_squares = [
-            {
-                'prev': None,
-                'next': None
-            },
-            {
-                'prev': None,
-                'next': None
-            }
-        ]
+        prev_0 = None
+        next_0 = None
+        prev_1 = None
+        next_1 = None
+
         sq_list = [item for sublist in board.square_list for item in sublist]
 
         import_fen(board.moves_list[next_move_number])
@@ -137,39 +132,27 @@ class Board:
             next_piece = next_board_state[i]
 
             if prev_piece is not None and next_piece is None:
-                if changed_squares[0]['prev']:
-                    changed_squares[1]['prev'] = square
-                else:
-                    changed_squares[0]['prev'] = square
+                if prev_0: prev_1 = square
+                else: prev_0 = square
             elif prev_piece is None and next_piece is not None:
-                if changed_squares[0]['next']:
-                    changed_squares[1]['next'] = square
-                else:
-                    changed_squares[0]['next'] = square
-            elif prev_piece == None and next_piece == None:
-                pass
-            elif prev_piece.id != next_piece.id:
-                if changed_squares[0]['next']:
-                    changed_squares[1]['next'] = square
-                else:
-                    changed_squares[0]['next'] = square
-                
-        if not changed_squares[1]['prev']:
-            changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next']]
-        elif changed_squares[1]['next']:
-            if self.get_square_index(changed_squares[0]['prev']) == (0, 0):
-                changed_squares = [changed_squares[1]['prev'], changed_squares[0]['prev'], 
-                                    changed_squares[0]['next'], changed_squares[1]['next']]
-            else: 
-                changed_squares = [changed_squares[0]['prev'], changed_squares[1]['prev'], 
-                                    changed_squares[1]['next'], changed_squares[0]['next']]
-        else:
-            if self.get_square_index(changed_squares[0]['prev'])[0] < self.get_square_index(changed_squares[0]['next'])[0]:
-                changed_squares = [changed_squares[0]['prev'], changed_squares[0]['next'], changed_squares[1]['prev']]
-            else:
-                changed_squares = [changed_squares[1]['prev'], changed_squares[0]['next'], changed_squares[0]['prev']]
-                
-        return changed_squares
+                if next_0: next_1 = square
+                else: next_0 = square
+            elif prev_piece and next_piece and prev_piece.id != next_piece.id:
+                if next_0: next_1 = square
+                else: next_0 = square
+
+        if not prev_1:
+            return [prev_0, next_0]
+
+        if next_1:
+            if self.get_square_index(prev_0) == (0, 0):
+                return [prev_1, prev_0, next_0, next_1]
+            return [prev_0, prev_1, next_1, next_0]
+
+        if self.get_square_index(prev_0)[0] < self.get_square_index(next_0)[0]:
+            return [prev_0, next_0, prev_1]
+
+        return [prev_1, next_0, prev_0] 
 
     def draw_board(self):
         for i in range(8):
@@ -197,7 +180,7 @@ class Piece:
         board.pieces_list.append(self)
         self.animating = False
         self.time = 0
-        self.duration = 30
+        self.duration = 20
         self.update_position(self.position)
 
     def update_position(self, position):
@@ -401,17 +384,17 @@ class Pawn(Piece):
             if not (0 <= x < 8 and 0 <= y < 8):
                 continue
 
+            # En passant 
+            if abs(offset[0]) == 1:
+                if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
+                    possible_moves.append((x, y))
+                    continue
+
             if only_attack_moves:
-                # Forward_moves
+                # Remove forward_moves
                 if offset[0] == 0:
                     continue
 
-                # En passant 
-                if abs(offset[0]) == 1:
-                    if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
-                        possible_moves.append((x, y))
-                        continue
-                
                 possible_moves.append((x, y))
 
             else:
@@ -426,12 +409,6 @@ class Pawn(Piece):
                     if not (board.get_piece_on_square(sq1) or board.get_piece_on_square(sq2)):
                         possible_moves.append((x, y + offset[1]))
                     continue
-
-                # En passant 
-                if abs(offset[0]) == 1:
-                    if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
-                        possible_moves.append((x, y))
-                        continue
 
                 target_square = board.get_square((x, y))
                 piece = board.get_piece_on_square(target_square)
@@ -955,7 +932,6 @@ while running:
                 else:
                     ui.refresh()
                     game_manager.update_legal_moves()
-                
                 
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
