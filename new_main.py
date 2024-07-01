@@ -5,8 +5,7 @@ from board import Board
 from ui import UIManager
 from chess_logic import GameManager
 from training import AI
-from event_handler import EventHandler
-from state_manager import StateManager
+from state_manager import StateManager, AppState
 
 class ChessOpeningTrainerApp:
     def __init__(self) -> None:
@@ -19,7 +18,6 @@ class ChessOpeningTrainerApp:
         self.ui_manager = UIManager(self.screen)
         self.game_manager = GameManager()
         self.ai = AI()
-        self.event_handler = EventHandler()
         self.state_manager = StateManager()
         self.set_dependencies()
     
@@ -31,26 +29,25 @@ class ChessOpeningTrainerApp:
         running = True
         while running:
             for event in pygame.event.get():
-                if event.type == QUIT:
+                if event.type == QUIT or self.state_manager.get_state() == AppState.QUIT:
                     running = False
 
-                self.event_handler.handle_event(event)
+                self.board.handle_event(event)
                 self.ui_manager.handle_event(event)
                     
             self.screen.fill(SCREEN_BG_COLOR)
-            self.board.draw_board()
             self.ui_manager.draw()
+
             self.clock.tick(FRAME_RATE)
             pygame.display.update()
         
         pygame.quit()
     
     def set_dependencies(self):
-        self.board.initialize_dependencies(self.game_manager, self.ui_manager, self.state_manager)
+        self.board.initialize_dependencies(self.game_manager, self.ui_manager, self.ai, self.state_manager)
         self.ui_manager.initialize_dependencies(self.board, self.ai, self.game_manager, self.state_manager)
         self.game_manager.initialize_dependencies(self.board)
         self.ai.initialize_dependencies(self.board, self.game_manager)
-        self.event_handler.initialize_dependencies(self.board, self.ui_manager, self.ai, self.game_manager)
         self.state_manager.initialize_dependencies(self.board, self.ai, self.ui_manager, self.game_manager)
 
 if __name__ == '__main__':

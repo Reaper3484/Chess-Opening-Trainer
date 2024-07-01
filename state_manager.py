@@ -1,4 +1,5 @@
 class AppState:
+    QUIT = 0
     MAIN_MENU = 1
     TRAINING = 2
     PRACTICE = 3

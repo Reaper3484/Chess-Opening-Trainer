@@ -10,36 +10,29 @@ class EventHandler:
         self.ui_manager = None
         self.game_manager = None
         self.ai = None
+        self.state_manager = None
 
     def initialize_dependencies(self, board, ui_manager, ai, game_manager):
         self.board = board
         self.ui_manager = ui_manager
         self.game_manager = game_manager
         self.ai = ai
+        # self.state_manager = 
         
-    def handle_event(self, event):
+    def handle_board_events(self, event):
         if event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
-                if self.ui_manager.train_text_rect.collidepoint(event.pos):
-                    self.ui_manager.train()
-
-                elif self.ui_manager.learn_text_rect.collidepoint(event.pos) and self.ui_manager.can_press_learn:
-                    self.ui_manager.learn()
-            
-                elif self.ui_manager.flip_button_rect.collidepoint(event.pos):
-                    self.ui_manager.flip()
-
-                elif self.board.can_move:
-                    for piece in self.board.pieces_list:
+                if self.can_move:
+                    for piece in self.pieces_list:
                         if piece.rect.collidepoint(event.pos): 
-                            if piece.colour != self.board.colour_to_move:
+                            if piece.colour != self.colour_to_move:
                                 continue
                             Piece.picked = piece
                             piece.rect.center = event.pos
-                            self.board.set_square_colour(piece.get_square(), PICKED_SQUARE_COLOR)
-                            self.board.pieces_list.remove(piece)
-                            self.board.pieces_list.append(piece)
-                            self.board.possible_moves_list = self.game_manager.legal_moves_dict[piece]
+                            self.set_square_colour(piece.get_square(), PICKED_SQUARE_COLOR)
+                            self.pieces_list.remove(piece)
+                            self.pieces_list.append(piece)
+                            self.possible_moves_list = self.game_manager.legal_moves_dict[piece]
                             break
             
         if event.type == MOUSEMOTION:
@@ -47,33 +40,33 @@ class EventHandler:
                 Piece.picked.rect.center = event.pos
                 found = False
 
-                for pos in self.board.possible_moves_list:
-                    sq = self.board.get_square(pos)
+                for pos in self.possible_moves_list:
+                    sq = self.get_square(pos)
                     if sq[1].collidepoint(event.pos):
-                        self.board.hover_pos = pos
+                        self.hover_pos = pos
                         found = True
                 
                 if not found:
-                    self.board.hover_pos = None
+                    self.hover_pos = None
 
         if event.type == MOUSEBUTTONUP:
             if Piece.picked and event.button == 1:
-                self.board.set_square_colour(Piece.picked.get_square())
+                self.set_square_colour(Piece.picked.get_square())
 
-                index = self.board.square_centers.index(self.board.closest_point(Piece.picked.rect.center, self.board.square_centers))
+                index = self.square_centers.index(self.closest_point(Piece.picked.rect.center, self.square_centers))
                 old_pos = Piece.picked.get_position()
                 new_pos = index // 8, index % 8
 
-                if new_pos not in self.board.possible_moves_list:
+                if new_pos not in self.possible_moves_list:
                     Piece.picked.update_position(old_pos)
                     Piece.picked = None
-                    self.board.possible_moves_list = []
+                    self.possible_moves_list = []
                     return
                 
-                piece = self.board.get_piece_on_pos(new_pos)
-                if piece and piece.colour != self.board.colour_to_move: 
-                    self.board.pieces_list.remove(piece) 
-                elif piece and piece.colour == self.board.colour_to_move:
+                piece = self.get_piece_on_pos(new_pos)
+                if piece and piece.colour != self.colour_to_move: 
+                    self.pieces_list.remove(piece) 
+                elif piece and piece.colour == self.colour_to_move:
                     new_pos = self.game_manager.castle(Piece.picked, piece)
 
                 Piece.picked.update_position(new_pos)
@@ -82,11 +75,11 @@ class EventHandler:
                 self.game_manager.update_castling_rights(Piece.picked, old_pos)
 
                 Piece.picked = None
-                self.board.possible_moves_list = []
-                self.board.hover_pos = None
-                self.board.move_squares_list.append([old_pos, new_pos])
-                self.board.move_number += 1
-                self.board.update_move_squares()
+                self.possible_moves_list = []
+                self.hover_pos = None
+                self.move_squares_list.append([old_pos, new_pos])
+                self.move_number += 1
+                self.update_move_squares()
                 self.board.moves_list.append(self.board.generate_fen())
                 self.board.colour_to_move = 'b' if self.board.colour_to_move == 'w' else 'w'
 

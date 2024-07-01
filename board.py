@@ -1,6 +1,8 @@
 import pygame
-import math
+from pygame.locals import *
 from constants import *
+from state_manager import AppState
+import math
 
 
 class Board:
@@ -8,6 +10,8 @@ class Board:
         self.screen = screen
         self.game_manager = None
         self.ui_manager = None
+        self.state_manager = None
+        self.ai = None
         self.square_list = [[None for _ in range(8)] for _ in range(8)]
         self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
         self.square_centers = []
@@ -22,9 +26,11 @@ class Board:
         self.possible_moves_list = []
         self.hover_pos = None    
     
-    def initialize_dependencies(self, game_manager, ui_manager):
+    def initialize_dependencies(self, game_manager, ui_manager, ai, state_manager):
         self.game_manager = game_manager
         self.ui_manager = ui_manager
+        self.state_manager = state_manager
+        self.ai = ai
         self.initialize_board()
         self.initialize_pieces()
 
@@ -265,6 +271,117 @@ class Board:
         for piece in self.pieces_list:
             piece.update_animation()
             piece.display()
+
+
+    def handle_event(self, event):
+        current_state = self.state_manager.get_state()
+        if not (current_state == AppState.TRAINING or current_state == AppState.PRACTICE):
+            return
+
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if self.can_move:
+                    for piece in self.pieces_list:
+                        if piece.rect.collidepoint(event.pos): 
+                            if piece.colour != self.colour_to_move:
+                                continue
+                            Piece.picked = piece
+                            piece.rect.center = event.pos
+                            self.set_square_colour(piece.get_square(), PICKED_SQUARE_COLOR)
+                            self.pieces_list.remove(piece)
+                            self.pieces_list.append(piece)
+                            self.possible_moves_list = self.game_manager.legal_moves_dict[piece]
+                            break
+            
+        if event.type == MOUSEMOTION:
+            if Piece.picked:
+                Piece.picked.rect.center = event.pos
+                found = False
+
+                for pos in self.possible_moves_list:
+                    sq = self.get_square(pos)
+                    if sq[1].collidepoint(event.pos):
+                        self.hover_pos = pos
+                        found = True
+                
+                if not found:
+                    self.hover_pos = None
+
+        if event.type == MOUSEBUTTONUP:
+            if Piece.picked and event.button == 1:
+                self.set_square_colour(Piece.picked.get_square())
+
+                index = self.square_centers.index(self.closest_point(Piece.picked.rect.center, self.square_centers))
+                old_pos = Piece.picked.get_position()
+                new_pos = index // 8, index % 8
+
+                if new_pos not in self.possible_moves_list:
+                    Piece.picked.update_position(old_pos)
+                    Piece.picked = None
+                    self.possible_moves_list = []
+                    return
+                
+                piece = self.get_piece_on_pos(new_pos)
+                if piece and piece.colour != self.colour_to_move: 
+                    self.pieces_list.remove(piece) 
+                elif piece and piece.colour == self.colour_to_move:
+                    new_pos = self.game_manager.castle(Piece.picked, piece)
+
+                Piece.picked.update_position(new_pos)
+
+                self.game_manager.en_passant(Piece.picked, old_pos)
+                self.game_manager.update_castling_rights(Piece.picked, old_pos)
+
+                Piece.picked = None
+                self.possible_moves_list = []
+                self.hover_pos = None
+                self.move_squares_list.append([old_pos, new_pos])
+                self.move_number += 1
+                self.update_move_squares()
+                self.moves_list.append(self.generate_fen())
+                self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
+
+                if self.ai.is_training:
+                    self.ai.move()
+                else:
+                    self.ui_manager.refresh()
+                    self.game_manager.update_legal_moves()
+                
+        if event.type == KEYDOWN:
+            if event.key == K_LEFT:
+                if self.move_number > 0:
+                    self.move_number -= 1  
+                    self.import_fen(self.moves_list[self.move_number])
+
+                    self.update_move_squares()
+
+                if self.move_number != len(self.moves_list) - 1:
+                    self.can_move = False
+
+            elif event.key == K_RIGHT:
+                if len(self.moves_list) > self.move_number + 1:
+                    self.move_number += 1
+                    self.import_fen(self.moves_list[self.move_number])
+
+                    self.update_move_squares()
+
+                if self.move_number == len(self.moves_list) - 1 :
+                    self.can_move = True
+            
+            elif event.key == K_z:
+                if self.move_number == len(self.moves_list) - 1 and self.move_number:
+                    self.move_number -= 1
+                    self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
+                    self.import_fen(self.moves_list[self.move_number])
+
+                    self.move_squares_list.pop()
+                    self.moves_list.pop()
+                    self.update_move_squares()
+                    self.ui_manager.refresh()
+                    self.game_manager.update_legal_moves()
+            
+            elif event.key == K_f:
+                print(self.generate_fen())
 
 
 class Piece:

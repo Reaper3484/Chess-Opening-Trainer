@@ -1,6 +1,8 @@
 import pygame
-import json
+from  pygame.locals import *
 from constants import *
+import json
+from state_manager import AppState
 
 class Button:
     def __init__(self, text, callback, center, size):
@@ -8,16 +10,47 @@ class Button:
         self.rect.center = center
         self.text = text
         self.callback = callback
-        self.font = pygame.font.Font(None, FONT_SIZE)
+        self.color = BUTTON_COLOR
+        self.hover = False
+        self.font = pygame.font.Font(FONT, FONT_SIZE)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, 'white', self.rect, border_radius=5)
+        pygame.draw.rect(screen, self.color, self.rect, border_radius=10)
         text_surface = self.font.render(self.text, True, FONT_COLOR)
         screen.blit(text_surface, text_surface.get_rect(center=self.rect.center))
 
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
+        if event.type == MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
             self.callback()
+            self.color = BUTTON_COLOR
+        elif event.type == MOUSEMOTION:
+            if self.rect.collidepoint(event.pos): 
+                self.color = BUTTON_HOVER_COLOR
+            else:
+                self.color = BUTTON_COLOR
+            
+
+class IconButton:
+    def __init__(self, image_path, callback, center, size):
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image_surf = pygame.transform.scale(self.image, size)
+        self.rect = self.image_surf.get_rect(center=center)
+        self.color = BUTTON_COLOR
+        self.callback = callback
+
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect, border_radius=10)
+        screen.blit(self.image_surf, self.rect)
+
+    def handle_event(self, event):
+        if event.type == MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
+            self.callback()
+            self.color = BUTTON_COLOR
+        elif event.type == MOUSEMOTION:
+            if self.rect.collidepoint(event.pos): 
+                self.color = BUTTON_HOVER_COLOR
+            else:
+                self.color = BUTTON_COLOR
 
 
 class UIManager:
@@ -29,21 +62,10 @@ class UIManager:
         self.game_manager = None
         self.state_manager = None
 
-        font = pygame.font.Font(FONT, FONT_SIZE)
-        self.train_text_surf = font.render('Train', True, FONT_COLOR)
-        self.train_text_rect = self.train_text_surf.get_rect(topleft=(9 * SQUARE_SIZE, 4 * SQUARE_SIZE + SQUARE_SIZE/16))
-
-        self.learn_text_surf = font.render('Learn', True, FONT_COLOR)
-        self.learn_text_rect = self.learn_text_surf.get_rect(topleft=(9 * SQUARE_SIZE, 5 * SQUARE_SIZE + SQUARE_SIZE/16))
-
-        self.image = pygame.image.load(IMAGE_PATH + 'flip_icon.png').convert_alpha()
-        self.flip_button_surf = pygame.transform.scale(self.image, (SQUARE_SIZE - 40, SQUARE_SIZE - 40))
-        self.flip_button_rect = self.flip_button_surf.get_rect(center=(9 * SQUARE_SIZE + self.learn_text_rect.size[0]//2, 6 * SQUARE_SIZE + SQUARE_SIZE/16))
-
         self.can_press_learn = True
 
         self.main_menu_buttons = [
-            Button('Train Today', self.train, 
+            Button('Train Today', self.open_training_view, 
                    (self.screen_width // 2, self.screen_height // 2 - 3 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             Button('Add Opening', self.train, 
                    (self.screen_width // 2, self.screen_height // 2 - 1 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
@@ -51,6 +73,19 @@ class UIManager:
                    (self.screen_width // 2, self.screen_height // 2 + 1 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             Button('Settings', self.train, 
                    (self.screen_width // 2, self.screen_height // 2 + 3 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
+            IconButton(IMAGE_PATH + 'exit_icon.png', self.exit_application, 
+                   (SQUARE_SIZE, self.screen_height - SQUARE_SIZE), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
+        ]
+
+        self.trainer_buttons = [
+            Button('Train', self.train, 
+                   (10 * SQUARE_SIZE, 10 * MENU_BUTTON_HEIGHT), (200, MENU_BUTTON_HEIGHT)),
+            Button('Learn', self.learn, 
+                   (10 * SQUARE_SIZE, 12 * MENU_BUTTON_HEIGHT), (200, MENU_BUTTON_HEIGHT)),
+            IconButton(IMAGE_PATH + 'flip_icon.png', self.flip, 
+                   (10 * SQUARE_SIZE, 14 * MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
+            IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
+                   (self.screen_width - SQUARE_SIZE, 1 * MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
         ]
     
     def initialize_dependencies(self, board, ai, game_manager, state_manager):
@@ -60,24 +95,38 @@ class UIManager:
         self.state_manager = state_manager
 
     def handle_event(self, event):
-        for button in self.main_menu_buttons:
-            button.handle_event(event)
+        match self.state_manager.get_state():
+            case AppState.MAIN_MENU:
+                for button in self.main_menu_buttons:
+                    button.handle_event(event)
 
+            case AppState.TRAINING:
+                for button in self.trainer_buttons:
+                    button.handle_event(event)
+        
     def draw(self):
-        pygame.draw.rect(self.screen, 'white', self.train_text_rect, border_radius=5)
-        self.screen.blit(self.train_text_surf, self.train_text_rect)
+        match self.state_manager.get_state():
+            case AppState.QUIT:
+                for button in self.main_menu_buttons:
+                    button.draw(self.screen)
 
-        if self.can_press_learn:
-            pygame.draw.rect(self.screen, 'white', self.learn_text_rect, border_radius=5)
-        else:
-            pygame.draw.rect(self.screen, 'dark grey', self.learn_text_rect, border_radius=5)
-        self.screen.blit(self.learn_text_surf, self.learn_text_rect)
+            case AppState.MAIN_MENU:
+                for button in self.main_menu_buttons:
+                    button.draw(self.screen)
 
-        pygame.draw.rect(self.screen, 'white', self.flip_button_rect, border_radius=5)
-        self.screen.blit(self.flip_button_surf, self.flip_button_rect)
+            case AppState.TRAINING:
+                self.board.draw_board()
+                for button in self.trainer_buttons:
+                    button.draw(self.screen)
 
-        for button in self.main_menu_buttons:
-            button.draw(self.screen)
+    def open_training_view(self):
+        self.state_manager.set_state(AppState.TRAINING)
+    
+    def open_main_menu(self):
+        self.state_manager.set_state(AppState.MAIN_MENU)
+
+    def exit_application(self):
+        self.state_manager.set_state(AppState.QUIT)
 
     def refresh(self):
         if self.board.user_colour == 'w' and self.board.colour_to_move == 'w':
