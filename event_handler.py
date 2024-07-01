@@ -18,9 +18,6 @@ class EventHandler:
         self.ai = ai
         
     def handle_event(self, event):
-        if event.type == QUIT:
-            running = False
-
         if event.type == MOUSEBUTTONDOWN:
             if event.button == 1:
                 if self.ui_manager.train_text_rect.collidepoint(event.pos):
