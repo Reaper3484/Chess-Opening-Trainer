@@ -1,21 +1,19 @@
-
-
-
 class GameManager:
     def __init__(self):
+        self.board = None
         self.en_passant_target_square = '-'
         self.castle_info = 'KQkq'
         self.castling_in_progress = False
         self.legal_moves_dict = {}
 
-    def update(self):
-        pass
+    def initialize_dependencies(self, board):
+        self.board = board
 
     def move_piece(self, start_square, end_square):
-        start_index = board.get_square_index(start_square)
-        end_index = board.get_square_index(end_square)
+        start_index = self.board.get_square_index(start_square)
+        end_index = self.board.get_square_index(end_square)
 
-        piece = board.get_piece_on_square(start_square)
+        piece = self.board.get_piece_on_square(start_square)
         piece.animate_move(start_index, end_index)
 
     def index_to_chess_notation(self, index):
@@ -41,7 +39,7 @@ class GameManager:
 
     def is_king_in_check(self, king):
         king_position = king.get_position()
-        for piece in board.pieces_list:
+        for piece in self.board.pieces_list:
             if piece.colour != king.colour:
                 attack_moves = piece.generate_moves(only_attack_moves=True)
                 if king_position in attack_moves:
@@ -49,21 +47,21 @@ class GameManager:
         return False
 
     def update_legal_moves(self):
-        for piece in board.pieces_list:
-            if piece.id.lower() == 'k' and piece.colour == board.colour_to_move:
+        for piece in self.board.pieces_list:
+            if piece.id.lower() == 'k' and piece.colour == self.board.colour_to_move:
                 king = piece
 
         no_legal_moves = True
-        for piece in board.pieces_list.copy():
-            if piece.colour == board.colour_to_move:
+        for piece in self.board.pieces_list.copy():
+            if piece.colour == self.board.colour_to_move:
                 legal_moves = []
                 possible_moves = piece.generate_moves()
                 old_pos = piece.get_position()
 
                 for move in possible_moves:
-                    enemy_piece = board.get_piece_on_pos(move)
-                    if enemy_piece and enemy_piece.colour != board.colour_to_move:
-                        board.pieces_list.remove(enemy_piece)
+                    enemy_piece = self.board.get_piece_on_pos(move)
+                    if enemy_piece and enemy_piece.colour != self.board.colour_to_move:
+                        self.board.pieces_list.remove(enemy_piece)
                     piece.update_position(move) 
 
                     if not self.is_king_in_check(king):
@@ -71,7 +69,7 @@ class GameManager:
 
                     piece.update_position(old_pos)
                     if enemy_piece:
-                        board.pieces_list.append(enemy_piece)
+                        self.board.pieces_list.append(enemy_piece)
 
                 self.legal_moves_dict[piece] = legal_moves
                 if legal_moves:
@@ -89,8 +87,8 @@ class GameManager:
         if pawn.id.lower() == 'p' and self.en_passant_target_square != '-':
             target_index = self.chess_notation_to_index(self.en_passant_target_square)
             if new_pos == target_index:
-                captured_pawn = board.get_piece_on_pos((new_pos[0], old_pos[1]))
-                board.pieces_list.remove(captured_pawn)
+                captured_pawn = self.board.get_piece_on_pos((new_pos[0], old_pos[1]))
+                self.board.pieces_list.remove(captured_pawn)
                 self.en_passant_target_square = '-'
                 return
 
@@ -118,7 +116,7 @@ class GameManager:
         rook_pos_map_w = {(0, 0): 'q', (7, 0): 'k', (0, 7): 'Q', (7, 7): 'K'}
         rook_pos_map_b = {(0, 0): 'k', (7, 0): 'Q', (0, 7): 'k', (7, 7): 'q'}
 
-        if board.user_colour == 'w':
+        if self.board.user_colour == 'w':
             char_to_remove = rook_pos_map_w.get(pos)
         else:
             char_to_remove = rook_pos_map_b.get(pos)
@@ -141,12 +139,12 @@ class GameManager:
 
         # Check if path is clear
         for sq in path:
-            if board.get_piece_on_pos(sq):
+            if self.board.get_piece_on_pos(sq):
                 return False
 
         # Check if path is attacked
         self.castling_in_progress = True
-        for piece in board.pieces_list:
+        for piece in self.board.pieces_list:
             if piece.colour != king.colour:
                 attack_positions = piece.generate_moves(only_attack_moves=True)
                 for pos in attack_positions:
@@ -156,7 +154,7 @@ class GameManager:
 
         self.castling_in_progress = False
 
-        if board.user_colour == 'w':
+        if self.board.user_colour == 'w':
             if (rook_pos == (0, 0) and 'q' in self.castle_info) or (rook_pos == (0, 7) and 'Q' in self.castle_info):
                 return True
             if (rook_pos == (7, 0) and 'k' in self.castle_info) or (rook_pos == (7, 7) and 'K' in self.castle_info):

@@ -1,8 +1,13 @@
 import pygame
+import math
+from constants import *
 
 
 class Board:
-    def __init__(self):
+    def __init__(self, screen):
+        self.screen = screen
+        self.game_manager = None
+        self.ui_manager = None
         self.square_list = [[None for _ in range(8)] for _ in range(8)]
         self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
         self.square_centers = []
@@ -16,20 +21,133 @@ class Board:
         self.move_squares_list = []
         self.possible_moves_list = []
         self.hover_pos = None    
-        self.initialise_board()
+    
+    def initialize_dependencies(self, game_manager, ui_manager):
+        self.game_manager = game_manager
+        self.ui_manager = ui_manager
+        self.initialize_board()
+        self.initialize_pieces()
 
-    def initialise_board(self):
+    def initialize_board(self):
         for i in range(8):
             for j in range(8):
-                square_surf = pygame.Surface((square_size, square_size))
-                square_rect = square_surf.get_rect(topleft = (i * square_size, j * square_size))
+                square_surf = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
+                square_rect = square_surf.get_rect(topleft = (i * SQUARE_SIZE, j * SQUARE_SIZE))
                 self.square_centers.append(square_rect.center)
                 if ((i % 2 == 0 and j % 2 == 0) or (i % 2 == 1 and j % 2 == 1)):
-                    square_surf.fill(light_square_color)
-                    self.square_list[i][j] = (square_surf, square_rect, light_square_color)
+                    square_surf.fill(LIGHT_SQUARE_COLOR)
+                    self.square_list[i][j] = (square_surf, square_rect, LIGHT_SQUARE_COLOR)
                 else:
-                    square_surf.fill(dark_square_color)
-                    self.square_list[i][j] = (square_surf, square_rect, dark_square_color)
+                    square_surf.fill(DARK_SQUARE_COLOR)
+                    self.square_list[i][j] = (square_surf, square_rect, DARK_SQUARE_COLOR)
+
+    def initialize_pieces(self):
+        self.w_king = King(CHESS_PIECES_PATH + 'white-king.png', (4, 7), 'K', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_queen = Queen(CHESS_PIECES_PATH + 'white-queen.png', (3, 7), 'Q', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_rook1 = Rook(CHESS_PIECES_PATH + 'white-rook.png', (0, 7), 'R', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_bishop1 = Bishop(CHESS_PIECES_PATH + 'white-bishop.png', (2, 7), 'B', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_knight1 = Knight(CHESS_PIECES_PATH + 'white-knight.png', (1, 7), 'N', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_rook2 = Rook(CHESS_PIECES_PATH + 'white-rook.png', (7, 7), 'R', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_bishop2 = Bishop(CHESS_PIECES_PATH + 'white-bishop.png', (5, 7), 'B', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_knight2 = Knight(CHESS_PIECES_PATH + 'white-knight.png', (6, 7), 'N', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn1 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (0, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn2 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (1, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn3 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (2, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn4 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (3, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn5 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (4, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn6 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (5, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn7 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (6, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_pawn8 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (7, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+
+        self.b_king = King(CHESS_PIECES_PATH + 'black-king.png', (4, 0), 'k', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_queen = Queen(CHESS_PIECES_PATH + 'black-queen.png', (3, 0), 'q', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_rook1 = Rook(CHESS_PIECES_PATH + 'black-rook.png', (0, 0), 'r', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_bishop1 = Bishop(CHESS_PIECES_PATH + 'black-bishop.png', (2, 0), 'b', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_knight1 = Knight(CHESS_PIECES_PATH + 'black-knight.png', (1, 0), 'n', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_rook2 = Rook(CHESS_PIECES_PATH + 'black-rook.png', (7, 0), 'r', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_bishop2 = Bishop(CHESS_PIECES_PATH + 'black-bishop.png', (5, 0), 'b', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_knight2 = Knight(CHESS_PIECES_PATH + 'black-knight.png', (6, 0), 'n', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn1 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (0, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn2 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (1, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn3 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (2, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn4 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (3, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn5 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (4, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn6 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (5, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn7 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (6, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_pawn8 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (7, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+
+    def import_fen(self, fen_string):
+        rank = 0
+        file = 0
+
+        repeatable_pieces = {
+            'r': [self.b_rook1, self.b_rook2],
+            'n': [self.b_knight1, self.b_knight2],
+            'b': [self.b_bishop1, self.b_bishop2],
+            'p': [self.b_pawn1, self.b_pawn2, self.b_pawn3, self.b_pawn4, self.b_pawn5, self.b_pawn6, self.b_pawn7, self.b_pawn8],
+            'R': [self.w_rook1, self.w_rook2],
+            'N': [self.w_knight1, self.w_knight2],
+            'B': [self.w_bishop1, self.w_bishop2],
+            'P': [self.w_pawn1, self.w_pawn2, self.w_pawn3, self.w_pawn4, self.w_pawn5, self.w_pawn6, self.w_pawn7, self.w_pawn8]
+        }
+
+        single_pieces = {
+            'q': self.b_queen,
+            'k': self.b_king,
+            'Q': self.w_queen,
+            'K': self.w_king
+        }
+
+        self.pieces_list = []
+
+        for c in fen_string.split()[0]:
+            if c.isnumeric():
+                file += int(c)
+            elif c == '/':
+                file = 0
+                rank += 1
+            else:
+                if c in repeatable_pieces:
+                    self.pieces_list.append(repeatable_pieces[c][0])
+                    repeatable_pieces[c][0].update_position((file, rank))
+                    repeatable_pieces[c].pop(0)
+                elif c in single_pieces:
+                    self.pieces_list.append(single_pieces[c])
+                    single_pieces[c].update_position((file, rank))
+                file += 1
+            
+        self.colour_to_move = fen_string.split()[1]
+        self.game_manager.castle_info = fen_string.split()[2]
+        self.game_manager.en_passant_target_square = fen_string.split()[3]
+
+    def generate_fen(self):
+        fen = ''
+
+        for rank in range(8):
+            empty_squares = 0
+            for file in range(8):
+                found = False
+                for piece in self.pieces_list:
+                    if piece.position == (file, rank):
+                        if empty_squares:
+                            fen += str(empty_squares)
+                        fen += piece.id
+                        empty_squares = 0
+                        found = True
+                        break
+                if not found:
+                    empty_squares += 1
+
+            if empty_squares:
+                fen += str(empty_squares) + '/'
+            else:
+                fen += '/'
+
+        fen += ' b' if self.move_number % 2 else ' w'
+        fen += ' ' + self.game_manager.castle_info
+        fen += ' ' + self.game_manager.en_passant_target_square
+
+        return fen
 
     def set_square_colour(self, square, colour=None):
         if not colour:
@@ -71,29 +189,29 @@ class Board:
     def highlight_possible_moves(self):
         for x, y in self.possible_moves_list:
             if (x, y) == self.hover_pos:
-                pygame.draw.rect(screen, 'grey', (x * square_size, y * square_size, square_size, square_size), 10)
+                pygame.draw.rect(self.screen, LEGAL_MOVE_HIGHLIGHT_COLOR, (x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), 10)
 
-            center = (x * square_size + square_size // 2, y * square_size + square_size // 2)
+            center = (x * SQUARE_SIZE + SQUARE_SIZE // 2, y * SQUARE_SIZE + SQUARE_SIZE // 2)
             if self.get_piece_on_pos((x, y)):
-                pygame.draw.circle(screen, 'grey', center, square_size // 2, 10)
+                pygame.draw.circle(self.screen, LEGAL_MOVE_HIGHLIGHT_COLOR, center, SQUARE_SIZE // 2, 10)
             else:
-                pygame.draw.circle(screen, 'grey', center, 20)
+                pygame.draw.circle(self.screen, LEGAL_MOVE_HIGHLIGHT_COLOR, center, 20)
 
     def update_move_squares(self):
         if self.move_squares:
-            sq1, sq2 = [board.get_square(p) for p in self.move_squares]
-            board.set_square_colour(sq1)
-            board.set_square_colour(sq2)
+            sq1, sq2 = [self.get_square(p) for p in self.move_squares]
+            self.set_square_colour(sq1)
+            self.set_square_colour(sq2)
 
-        index = board.move_number - 1
+        index = self.move_number - 1
 
         if index < 0:
             return
 
         self.move_squares = self.move_squares_list[index]
-        sq1, sq2 = [board.get_square(p) for p in self.move_squares_list[index]]
-        board.set_square_colour(sq1, prev_square_color)
-        board.set_square_colour(sq2, next_square_color)
+        sq1, sq2 = [self.get_square(p) for p in self.move_squares_list[index]]
+        self.set_square_colour(sq1, PREV_SQUARE_COLOR)
+        self.set_square_colour(sq2, NEXT_SQUARE_COLOR)
 
     def get_positions_changed(self, prev_move_number, next_move_number):
         prev_0 = None
@@ -101,13 +219,13 @@ class Board:
         prev_1 = None
         next_1 = None
 
-        sq_list = [item for sublist in board.square_list for item in sublist]
+        sq_list = [item for sublist in self.square_list for item in sublist]
 
-        import_fen(board.moves_list[next_move_number])
-        next_board_state = [board.get_piece_on_square(square) for square in sq_list]
+        self.import_fen(self.moves_list[next_move_number])
+        next_board_state = [self.get_piece_on_square(square) for square in sq_list]
 
-        import_fen(board.moves_list[prev_move_number])
-        prev_board_state = [board.get_piece_on_square(square) for square in sq_list]
+        self.import_fen(self.moves_list[prev_move_number])
+        prev_board_state = [self.get_piece_on_square(square) for square in sq_list]
 
         for i, square in enumerate(sq_list):
             prev_piece = prev_board_state[i]
@@ -140,7 +258,7 @@ class Board:
         for i in range(8):
             for j in range(8):
                 square = self.square_list[i][j]
-                screen.blit(square[0], square[1])
+                self.screen.blit(square[0], square[1])
 
         self.highlight_possible_moves()
 
@@ -152,14 +270,18 @@ class Board:
 class Piece:
     picked = None
 
-    def __init__(self, image_location, position, id):
+    def __init__(self, image_location, position, id, game_manager, board, ui_manager, screen):
+        self.screen = screen
         self.surf = pygame.image.load(image_location).convert_alpha()
-        self.rect = self.surf.get_rect(topleft=(position[0] * square_size, position[1] * square_size))
+        self.rect = self.surf.get_rect(topleft=(position[0] * SQUARE_SIZE, position[1] * SQUARE_SIZE))
         self.id = id
         self.colour = 'w' if self.id.isupper() else 'b'
         self.position = position
-        board.pieces_pos_list[position[0]][position[1]] = self
-        board.pieces_list.append(self)
+        self.board = board
+        self.game_manager = game_manager
+        self.ui_manager = ui_manager
+        self.board.pieces_pos_list[position[0]][position[1]] = self
+        self.board.pieces_list.append(self)
         self.animating = False
         self.time = 0
         self.duration = 20
@@ -167,17 +289,17 @@ class Piece:
 
     def update_position(self, position):
         self.position = position
-        self.rect.topleft = (self.position[0] * square_size, self.position[1] * square_size)
-        self.rect.center = board.closest_point(self.rect.center, board.square_centers)
+        self.rect.topleft = (self.position[0] * SQUARE_SIZE, self.position[1] * SQUARE_SIZE)
+        self.rect.center = self.board.closest_point(self.rect.center, self.board.square_centers)
 
     def get_position(self):
         return self.position
 
     def get_square(self):
-        return board.square_list[self.position[0]][self.position[1]]
+        return self.board.square_list[self.position[0]][self.position[1]]
 
     def display(self):
-        screen.blit(self.surf, self.rect)
+        self.screen.blit(self.surf, self.rect)
 
     def ease_in_out(self, t):
         if t < 0.5:
@@ -186,10 +308,10 @@ class Piece:
             return 1 - 8 * (1 - t) ** 4
 
     def animate_move(self, start_pos, end_pos):
-        self.start_pos = (start_pos[0] * square_size, start_pos[1] * square_size)
-        self.end_pos = (end_pos[0] * square_size, end_pos[1] * square_size)
-        board.pieces_list.remove(self)
-        board.pieces_list.append(self)
+        self.start_pos = (start_pos[0] * SQUARE_SIZE, start_pos[1] * SQUARE_SIZE)
+        self.end_pos = (end_pos[0] * SQUARE_SIZE, end_pos[1] * SQUARE_SIZE)
+        self.board.pieces_list.remove(self)
+        self.board.pieces_list.append(self)
         self.animating = True
         self.time = 0
 
@@ -200,13 +322,13 @@ class Piece:
             if t >= 1:
                 t = 1
                 self.animating = False
-                self.update_position((self.end_pos[0] // square_size, self.end_pos[1] // square_size))
-                fen = board.moves_list[board.move_number]
-                board.colour_to_move = fen.split()[1]
-                game_manager.castle_info = fen.split()[2]
-                game_manager.en_passant_target_square = fen.split()[3]
-                ui.refresh()
-                game_manager.update_legal_moves()
+                self.update_position((self.end_pos[0] // SQUARE_SIZE, self.end_pos[1] // SQUARE_SIZE))
+                fen = self.board.moves_list[self.board.move_number]
+                self.board.colour_to_move = fen.split()[1]
+                self.game_manager.castle_info = fen.split()[2]
+                self.game_manager.en_passant_target_square = fen.split()[3]
+                self.ui_manager.refresh()
+                self.game_manager.update_legal_moves()
                 return
 
             self.rect.topleft = (
@@ -223,9 +345,9 @@ class King(Piece):
 
         for i in [0, 7]:
             pos = (i, self.get_position()[1])
-            rook = board.get_piece_on_pos(pos)
+            rook = self.board.get_piece_on_pos(pos)
             if rook and rook.id.lower() == 'r' and rook.colour == self.colour:
-                if game_manager.can_castle(self, rook):
+                if self.game_manager.can_castle(self, rook):
                     possible_moves.append(pos)
                 
         for offset in move_offsets:
@@ -234,8 +356,8 @@ class King(Piece):
             y += offset[1]
 
             if 0 <= x < 8 and 0 <= y < 8:
-                target_square = board.get_square((x, y))
-                piece = board.get_piece_on_square(target_square)
+                target_square = self.board.get_square((x, y))
+                piece = self.board.get_piece_on_square(target_square)
                 if not piece:
                     possible_moves.append((x, y))
                 else:
@@ -257,8 +379,8 @@ class Queen(Piece):
                 y += offset[1]
 
                 if 0 <= x < 8 and 0 <= y < 8:
-                    target_square = board.get_square((x, y))
-                    piece = board.get_piece_on_square(target_square)
+                    target_square = self.board.get_square((x, y))
+                    piece = self.board.get_piece_on_square(target_square)
                     if not piece:
                         possible_moves.append((x, y))
                     else:
@@ -283,8 +405,8 @@ class Knight(Piece):
             y += offset[1]
 
             if 0 <= x < 8 and 0 <= y < 8:
-                target_square = board.get_square((x, y))
-                piece = board.get_piece_on_square(target_square)
+                target_square = self.board.get_square((x, y))
+                piece = self.board.get_piece_on_square(target_square)
                 if not piece:
                     possible_moves.append((x, y))
                 else:
@@ -306,8 +428,8 @@ class Bishop(Piece):
                 y += offset[1]
 
                 if 0 <= x < 8 and 0 <= y < 8:
-                    target_square = board.get_square((x, y))
-                    piece = board.get_piece_on_square(target_square)
+                    target_square = self.board.get_square((x, y))
+                    piece = self.board.get_piece_on_square(target_square)
                     if not piece:
                         possible_moves.append((x, y))
                     else:
@@ -333,8 +455,8 @@ class Rook(Piece):
                 y += offset[1]
 
                 if 0 <= x < 8 and 0 <= y < 8:
-                    target_square = board.get_square((x, y))
-                    piece = board.get_piece_on_square(target_square)
+                    target_square = self.board.get_square((x, y))
+                    piece = self.board.get_piece_on_square(target_square)
                     if not piece:
                         possible_moves.append((x, y))
                     else:
@@ -349,7 +471,7 @@ class Rook(Piece):
 
 class Pawn(Piece):
     def generate_moves(self, only_attack_moves=False):
-        if self.colour == board.user_colour:
+        if self.colour == self.board.user_colour:
             move_offsets = [(0, -1), (0, -2), (1, -1), (-1, -1)]
             initial_y = 6
         else:
@@ -368,7 +490,7 @@ class Pawn(Piece):
 
             # En passant 
             if abs(offset[0]) == 1:
-                if game_manager.en_passant_target_square == game_manager.index_to_chess_notation((x, y)):
+                if self.game_manager.en_passant_target_square == self.game_manager.index_to_chess_notation((x, y)):
                     possible_moves.append((x, y))
                     continue
 
@@ -386,14 +508,14 @@ class Pawn(Piece):
                     if y != initial_y:
                         continue
 
-                    sq1 = board.get_square((x, y + move_offsets[0][1]))
-                    sq2 = board.get_square((x, y + offset[1]))
-                    if not (board.get_piece_on_square(sq1) or board.get_piece_on_square(sq2)):
+                    sq1 = self.board.get_square((x, y + move_offsets[0][1]))
+                    sq2 = self.board.get_square((x, y + offset[1]))
+                    if not (self.board.get_piece_on_square(sq1) or self.board.get_piece_on_square(sq2)):
                         possible_moves.append((x, y + offset[1]))
                     continue
 
-                target_square = board.get_square((x, y))
-                piece = board.get_piece_on_square(target_square)
+                target_square = self.board.get_square((x, y))
+                piece = self.board.get_piece_on_square(target_square)
                 if not piece and offset[0] == 0:
                     possible_moves.append((x, y))
                 elif piece and offset[0] != 0:

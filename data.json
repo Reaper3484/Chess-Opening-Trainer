@@ -1,5 +1,19 @@
 {
-    "w": {},
+    "w": {
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/ w KQkq -": "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq d6",
+        "RNBKQBNR/PPP1PPPP/8/3P4/8/5p2/ppppp1pp/rnbkqbnr/ w KQkq -": "RNBKQBNR/PPP2PPP/8/3PP3/8/5p2/ppppp1pp/rnbkqbnr/ b KQkq e6",
+        "RNBKQBNR/PPP2PPP/8/3PP3/4p3/5p2/pppp2pp/rnbkqbnr/ w KQkq e3": "RNBKQBNR/PPP2PPP/8/4P3/3Pp3/5p2/pppp2pp/rnbkqbnr/ b KQkq -",
+        "RNBKQBNR/PPP2PPP/8/4P3/3Ppp2/8/pppp2pp/rnbkqbnr/ w KQkq -": "RNBKQBNR/PPP2PPP/8/8/3PpP2/8/pppp2pp/rnbkqbnr/ b KQkq -",
+        "RNBKQBNR/PPP2PPP/8/8/3PpP2/5n2/pppp2pp/rnbkqb1r/ w KQkq -": "RNBKQ1NR/PPP2PPP/8/2B5/3PpP2/5n2/pppp2pp/rnbkqb1r/ b KQkq -",
+        "RNBKQ1NR/PPP2PPP/8/2B5/3PpP2/3p1n2/ppp3pp/rnbkqb1r/ w KQkq -": "RNBKQ1NR/PPP2PPP/3B4/8/3PpP2/3p1n2/ppp3pp/rnbkqb1r/ b KQkq -",
+        "RNBKQ1NR/PPP2PPP/3B4/8/3PpP2/3p1n2/pppn2pp/r1bkqb1r/ w KQkq -": "RNBKQ2R/PPP2PPP/3B1N2/8/3PpP2/3p1n2/pppn2pp/r1bkqb1r/ b KQkq -",
+        "RNBKQ2R/PPP2PPP/3B1N2/8/2nPpP2/3p1n2/ppp3pp/r1bkqb1r/ w KQkq -": "R1BKQ2R/PPP2PPP/2NB1N2/8/2nPpP2/3p1n2/ppp3pp/r1bkqb1r/ b KQkq -",
+        "R1BKQ2R/PPP2PPP/2NB1N2/8/2nPpP2/3p1n2/pppb2pp/r2kqb1r/ w KQkq -": "R2KQ2R/PPPB1PPP/2NB1N2/8/2nPpP2/3p1n2/pppb2pp/r2kqb1r/ b KQkq -",
+        "R2KQ2R/PPPB1PPP/2NB1N2/8/2nPpP2/3p1n2/pppb2pp/1kr1qb1r/ w KQ -": "1KR1Q2R/PPPB1PPP/2NB1N2/8/2nPpP2/3p1n2/pppb2pp/1kr1qb1r/ b - -",
+        "1KR1Q2R/PPPB1PPP/2Nn1N2/8/3PpP2/3p1n2/pppb2pp/1kr1qb1r/ w - -": "1KR1Q2R/PP1B1PPP/2NP1N2/8/3PpP2/3p1n2/pppb2pp/1kr1qb1r/ b - -",
+        "1KR1Q2R/PP1B1PPP/2NP1N2/8/3Ppb2/3p1n2/ppp3pp/1kr1qb1r/ w - -": "1KR1Q2R/PP1B1PPP/3P1N2/8/1N1Ppb2/3p1n2/ppp3pp/1kr1qb1r/ b - -",
+        "1KR1Q2R/PP1B1PPP/3P1N2/8/1q1Ppb2/3p1n2/ppp3pp/1kr2b1r/ w - -": "1KR1Q2R/PP3PPP/3PBN2/8/1q1Ppb2/3p1n2/ppp3pp/1kr2b1r/ b - -"
+    },
     "b": {
         "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR/ b KQkq e3": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR/ w KQkq e6",
         "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -": "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ w KQkq -",
