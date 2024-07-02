@@ -9,13 +9,6 @@ class GameManager:
     def initialize_dependencies(self, board):
         self.board = board
 
-    def move_piece(self, start_square, end_square):
-        start_index = self.board.get_square_index(start_square)
-        end_index = self.board.get_square_index(end_square)
-
-        piece = self.board.get_piece_on_square(start_square)
-        piece.animate_move(start_index, end_index)
-
     def index_to_chess_notation(self, index):
         files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ranks = ['1', '2', '3', '4', '5', '6', '7', '8']

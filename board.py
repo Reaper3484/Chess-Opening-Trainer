@@ -125,6 +125,7 @@ class Board:
         self.colour_to_move = fen_string.split()[1]
         self.game_manager.castle_info = fen_string.split()[2]
         self.game_manager.en_passant_target_square = fen_string.split()[3]
+        self.game_manager.update_legal_moves()
 
     def generate_fen(self):
         fen = ''
@@ -215,7 +216,7 @@ class Board:
             return
 
         self.move_squares = self.move_squares_list[index]
-        sq1, sq2 = [self.get_square(p) for p in self.move_squares_list[index]]
+        sq1, sq2 = [self.get_square(p) for p in self.move_squares]
         self.set_square_colour(sq1, PREV_SQUARE_COLOR)
         self.set_square_colour(sq2, NEXT_SQUARE_COLOR)
 
@@ -260,6 +261,22 @@ class Board:
 
         return [prev_1, next_0, prev_0] 
 
+    def move_piece(self, start_square, end_square):
+        start_index = self.get_square_index(start_square)
+        end_index = self.get_square_index(end_square)
+
+        piece = self.get_piece_on_square(start_square)
+        piece.animate_move(start_index, end_index)
+
+    def reset_board(self):
+        self.import_fen(START_POSITION_FEN)
+        self.moves_list = [START_POSITION_FEN]
+        self.move_number = 0
+        self.can_move = True
+        self.update_move_squares()
+        self.move_squares_list = []
+        self.move_squares = []
+
     def draw_board(self):
         for i in range(8):
             for j in range(8):
@@ -271,7 +288,6 @@ class Board:
         for piece in self.pieces_list:
             piece.update_animation()
             piece.display()
-
 
     def handle_event(self, event):
         current_state = self.state_manager.get_state()
@@ -378,7 +394,6 @@ class Board:
                     self.moves_list.pop()
                     self.update_move_squares()
                     self.ui_manager.refresh()
-                    self.game_manager.update_legal_moves()
             
             elif event.key == K_f:
                 print(self.generate_fen())

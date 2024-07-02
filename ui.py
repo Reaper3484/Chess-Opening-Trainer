@@ -15,7 +15,7 @@ class Button:
         self.font = pygame.font.Font(FONT, FONT_SIZE)
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect, border_radius=10)
+        pygame.draw.rect(screen, self.color, self.rect, border_radius=BUTTON_BORDER_RADIUS)
         text_surface = self.font.render(self.text, True, FONT_COLOR)
         screen.blit(text_surface, text_surface.get_rect(center=self.rect.center))
 
@@ -39,7 +39,7 @@ class IconButton:
         self.callback = callback
 
     def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect, border_radius=10)
+        pygame.draw.rect(screen, self.color, self.rect, border_radius=BUTTON_BORDER_RADIUS)
         screen.blit(self.image_surf, self.rect)
 
     def handle_event(self, event):
@@ -60,10 +60,21 @@ class UIManager:
         self.board = None
         self.ai = None
         self.game_manager = None
+        self.trainer = None
         self.state_manager = None
 
         self.can_press_learn = True
 
+    
+    def initialize_dependencies(self, board, ai, game_manager, trainer, state_manager):
+        self.board = board
+        self.ai = ai
+        self.game_manager = game_manager
+        self.trainer = trainer
+        self.state_manager = state_manager
+        self.initialize_buttons()
+
+    def initialize_buttons(self):
         self.main_menu_buttons = [
             Button('Train Today', self.open_training_view, 
                    (self.screen_width // 2, self.screen_height // 2 - 3 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
@@ -78,7 +89,7 @@ class UIManager:
         ]
 
         self.trainer_buttons = [
-            Button('Train', self.train, 
+            Button('Train', self.trainer.train_next, 
                    (10 * SQUARE_SIZE, 10 * MENU_BUTTON_HEIGHT), (200, MENU_BUTTON_HEIGHT)),
             Button('Learn', self.learn, 
                    (10 * SQUARE_SIZE, 12 * MENU_BUTTON_HEIGHT), (200, MENU_BUTTON_HEIGHT)),
@@ -87,12 +98,6 @@ class UIManager:
             IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
                    (self.screen_width - SQUARE_SIZE, 1 * MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
         ]
-    
-    def initialize_dependencies(self, board, ai, game_manager, state_manager):
-        self.board = board
-        self.ai = ai
-        self.game_manager = game_manager
-        self.state_manager = state_manager
 
     def handle_event(self, event):
         match self.state_manager.get_state():

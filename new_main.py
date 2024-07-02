@@ -4,7 +4,7 @@ from constants import *
 from board import Board 
 from ui import UIManager
 from chess_logic import GameManager
-from training import AI
+from training import AI2, Trainer
 from state_manager import StateManager, AppState
 
 class ChessOpeningTrainerApp:
@@ -17,14 +17,14 @@ class ChessOpeningTrainerApp:
         self.board = Board(self.screen)
         self.ui_manager = UIManager(self.screen)
         self.game_manager = GameManager()
-        self.ai = AI()
+        self.ai2 = AI2()
+        self.trainer = Trainer()
         self.state_manager = StateManager()
         self.set_dependencies()
     
     def run(self):
-        self.board.import_fen('rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -')
-        self.board.moves_list.append(self.board.generate_fen())
-        self.game_manager.update_legal_moves()
+        self.board.import_fen(START_POSITION_FEN)
+        self.board.moves_list.append(START_POSITION_FEN)
 
         running = True
         while running:
@@ -44,11 +44,12 @@ class ChessOpeningTrainerApp:
         pygame.quit()
     
     def set_dependencies(self):
-        self.board.initialize_dependencies(self.game_manager, self.ui_manager, self.ai, self.state_manager)
-        self.ui_manager.initialize_dependencies(self.board, self.ai, self.game_manager, self.state_manager)
+        self.board.initialize_dependencies(self.game_manager, self.ui_manager, self.ai2, self.state_manager)
+        self.ui_manager.initialize_dependencies(self.board, self.ai2, self.game_manager, self.trainer, self.state_manager)
         self.game_manager.initialize_dependencies(self.board)
-        self.ai.initialize_dependencies(self.board, self.game_manager)
-        self.state_manager.initialize_dependencies(self.board, self.ai, self.ui_manager, self.game_manager)
+        self.ai2.initialize_dependencies(self.board, self.game_manager)
+        self.trainer.initialize_dependencies(self.ai2)
+        self.state_manager.initialize_dependencies(self.board, self.ai2, self.ui_manager, self.game_manager)
 
 if __name__ == '__main__':
     app = ChessOpeningTrainerApp()
