@@ -11,7 +11,7 @@ class Board:
         self.game_manager = None
         self.ui_manager = None
         self.state_manager = None
-        self.ai = None
+        self.trainer = None
         self.square_list = [[None for _ in range(8)] for _ in range(8)]
         self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
         self.square_centers = []
@@ -26,11 +26,11 @@ class Board:
         self.possible_moves_list = []
         self.hover_pos = None    
     
-    def initialize_dependencies(self, game_manager, ui_manager, ai, state_manager):
+    def initialize_dependencies(self, ui_manager, game_manager, trainer, state_manager):
         self.game_manager = game_manager
         self.ui_manager = ui_manager
         self.state_manager = state_manager
-        self.ai = ai
+        self.trainer = trainer
         self.initialize_board()
         self.initialize_pieces()
 
@@ -269,13 +269,23 @@ class Board:
         piece.animate_move(start_index, end_index)
 
     def reset_board(self):
-        self.import_fen(START_POSITION_FEN)
-        self.moves_list = [START_POSITION_FEN]
+        self.import_fen(START_POSITION_FEN_W)
+        self.moves_list = [START_POSITION_FEN_W]
         self.move_number = 0
         self.can_move = True
         self.update_move_squares()
         self.move_squares_list = []
         self.move_squares = []
+    
+    def undo(self):
+        if self.move_number == len(self.moves_list) - 1 and self.move_number:
+            self.move_number -= 1
+            self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
+            self.import_fen(self.moves_list[self.move_number])
+
+            self.move_squares_list.pop()
+            self.moves_list.pop()
+            self.update_move_squares()
 
     def draw_board(self):
         for i in range(8):
@@ -357,8 +367,8 @@ class Board:
                 self.moves_list.append(self.generate_fen())
                 self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
 
-                if self.ai.is_training:
-                    self.ai.move()
+                if self.trainer.is_training:
+                    self.trainer.move()
                 else:
                     self.ui_manager.refresh()
                     self.game_manager.update_legal_moves()
@@ -385,16 +395,9 @@ class Board:
                     self.can_move = True
             
             elif event.key == K_z:
-                if self.move_number == len(self.moves_list) - 1 and self.move_number:
-                    self.move_number -= 1
-                    self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
-                    self.import_fen(self.moves_list[self.move_number])
-
-                    self.move_squares_list.pop()
-                    self.moves_list.pop()
-                    self.update_move_squares()
-                    self.ui_manager.refresh()
-            
+                if not self.trainer.is_training:
+                    self.undo()
+                    
             elif event.key == K_f:
                 print(self.generate_fen())
 

@@ -11,9 +11,8 @@ class StateManager:
     def __init__(self) -> None:
         self.state = AppState.MAIN_MENU 
     
-    def initialize_dependencies(self, board, ai, ui_manager, game_manager): 
+    def initialize_dependencies(self, board, ui_manager, game_manager): 
         self.board = board
-        self.ai = ai
         self.ui_manager = ui_manager
         self.game_manager = game_manager
 

@@ -1,6 +1,7 @@
 SQUARE_SIZE = 127
 
-START_POSITION_FEN = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -'
+START_POSITION_FEN_W = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -'
+START_POSITION_FEN_B = 'RNBKQBNR/PPPPPPPP/////pppppppp/rnbkqbnr w KQkq -'
 
 SCREEN_BG_COLOR = '#272521'
 LIGHT_SQUARE_COLOR = '#7D955C'
@@ -9,6 +10,8 @@ PICKED_SQUARE_COLOR = 'yellow'
 PREV_SQUARE_COLOR = 'light blue'
 NEXT_SQUARE_COLOR = 'blue'
 LEGAL_MOVE_HIGHLIGHT_COLOR = 'light grey'
+PREV_CORRECT_SQUARE_COLOR = 'light green'
+NEXT_CORRECT_SQUARE_COLOR = 'green'
 
 BUTTON_COLOR = 'white'
 BUTTON_HOVER_COLOR = 'light grey'
