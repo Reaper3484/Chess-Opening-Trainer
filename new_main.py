@@ -28,8 +28,11 @@ class ChessOpeningTrainerApp:
 
         running = True
         while running:
+            if self.state_manager.get_state() == AppState.QUIT:
+                running = False
+                
             for event in pygame.event.get():
-                if event.type == QUIT or self.state_manager.get_state() == AppState.QUIT:
+                if event.type == QUIT:
                     running = False
 
                 self.board.handle_event(event)
@@ -46,9 +49,9 @@ class ChessOpeningTrainerApp:
     def set_dependencies(self):
         self.board.initialize_dependencies(self.ui_manager, self.game_manager, self.trainer, self.state_manager)
         self.ui_manager.initialize_dependencies(self.board, self.game_manager, self.trainer, self.state_manager)
-        self.game_manager.initialize_dependencies(self.board)
-        self.trainer.initialize_dependencies(self.board)
-        self.state_manager.initialize_dependencies(self.board, self.ui_manager, self.game_manager)
+        self.game_manager.initialize_dependencies(self.board, self.state_manager)
+        self.trainer.initialize_dependencies(self.board, self.state_manager)
+        self.state_manager.initialize_dependencies(self.board, self.ui_manager, self.game_manager, self.trainer)
 
 
 if __name__ == '__main__':

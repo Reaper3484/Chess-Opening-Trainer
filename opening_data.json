@@ -2,39 +2,53 @@
     "openings": [
         {
             "name": "Jobava London",
-            "ai_color": "b",
+            "user_color": "w",
             "moves_list": [
-                "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR/ b KQkq d3", "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR/ w KQkq d6",
-                "rnbqkbnr/ppp1pppp/8/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/ b KQkq -", "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/ w KQkq -",
-                "rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/ b KQkq -", "rnbqkb1r/ppp2ppp/4pn2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/ w KQkq -"
+                "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR/ b KQkq d3",
+                "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR/ w KQkq d6",
+                "rnbqkbnr/ppp1pppp/8/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/ b KQkq -",
+                "rnbqkb1r/ppp1pppp/5n2/3p4/3P4/2N5/PPP1PPPP/R1BQKBNR/ w KQkq -",
+                "rnbqkb1r/ppp1pppp/5n2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/ b KQkq -",
+                "rnbqkb1r/ppp2ppp/4pn2/3p4/3P1B2/2N5/PPP1PPPP/R2QKBNR/ w KQkq -"
             ],
-            "next_review": "2024-07-03",
-            "interval": 0,
-            "repititions": 0
-        },
-        {
-            "name": "Kings Pawn",
-            "ai_color": "b",
-            "moves_list": [
-                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR/ b KQkq e3", "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR/ w KQkq e6",
-                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -", "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ w KQkq -",
-                "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R/ b KQkq -", "r1bqkbnr/pppp1ppp/8/4p3/2BnP3/5N2/PPPP1PPP/RNBQK2R/ w KQkq -"
-            ],
-            "next_review": "2024-07-03",
-            "interval": 0,
-            "repititions": 0
+            "next_review": "2024-07-06T14:04:03",
+            "interval": 0.5,
+            "ease": 2.3,
+            "current_step": 0,
+            "type": "relearning"
         },
         {
             "name": "Carro Kan",
-            "ai_color": "w",
+            "user_color": "b",
             "moves_list": [
-                "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq d6", "RNBKQBNR/PPP1PPPP/8/3P4/8/5p2/ppppp1pp/rnbkqbnr/ w KQkq -", 
-                "RNBKQBNR/PPP2PPP/8/3PP3/8/5p2/ppppp1pp/rnbkqbnr/ b KQkq e6", "RNBKQBNR/PPP2PPP/8/3PP3/4p3/5p2/pppp2pp/rnbkqbnr/ w KQkq e3", 
-                "RNBKQBNR/PPP2PPP/8/4P3/3Pp3/5p2/pppp2pp/rnbkqbnr/ b KQkq -" 
+                "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq d6",
+                "RNBKQBNR/PPP1PPPP/8/3P4/8/5p2/ppppp1pp/rnbkqbnr/ w KQkq -",
+                "RNBKQBNR/PPP2PPP/8/3PP3/8/5p2/ppppp1pp/rnbkqbnr/ b KQkq e6",
+                "RNBKQBNR/PPP2PPP/8/3PP3/4p3/5p2/pppp2pp/rnbkqbnr/ w KQkq e3",
+                "RNBKQBNR/PPP2PPP/8/4P3/3Pp3/5p2/pppp2pp/rnbkqbnr/ b KQkq -"
             ],
-            "next_review": "2024-07-03",
-            "interval": 0,
-            "repititions": 0
+            "next_review": "2024-07-06T17:51:19",
+            "interval": 1.2,
+            "ease": 2.35,
+            "current_step": 1,
+            "type": "review"
+        },
+        {
+            "name": "Kings Pawn",
+            "user_color": "w",
+            "moves_list": [
+                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR/ b KQkq e3",
+                "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR/ w KQkq e6",
+                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -",
+                "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ w KQkq -",
+                "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R/ b KQkq -",
+                "r1bqkbnr/pppp1ppp/8/4p3/2BnP3/5N2/PPPP1PPP/RNBQK2R/ w KQkq -"
+            ],
+            "next_review": "2024-07-06T17:44:08",
+            "interval": 1.2,
+            "ease": 2.35,
+            "current_step": 1,
+            "type": "review"
         }
     ]
 }

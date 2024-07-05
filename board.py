@@ -28,7 +28,6 @@ class Board:
     
     def initialize_dependencies(self, ui_manager, game_manager, trainer, state_manager):
         self.game_manager = game_manager
-        self.ui_manager = ui_manager
         self.state_manager = state_manager
         self.trainer = trainer
         self.initialize_board()
@@ -48,39 +47,39 @@ class Board:
                     self.square_list[i][j] = (square_surf, square_rect, DARK_SQUARE_COLOR)
 
     def initialize_pieces(self):
-        self.w_king = King(CHESS_PIECES_PATH + 'white-king.png', (4, 7), 'K', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_queen = Queen(CHESS_PIECES_PATH + 'white-queen.png', (3, 7), 'Q', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_rook1 = Rook(CHESS_PIECES_PATH + 'white-rook.png', (0, 7), 'R', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_bishop1 = Bishop(CHESS_PIECES_PATH + 'white-bishop.png', (2, 7), 'B', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_knight1 = Knight(CHESS_PIECES_PATH + 'white-knight.png', (1, 7), 'N', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_rook2 = Rook(CHESS_PIECES_PATH + 'white-rook.png', (7, 7), 'R', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_bishop2 = Bishop(CHESS_PIECES_PATH + 'white-bishop.png', (5, 7), 'B', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_knight2 = Knight(CHESS_PIECES_PATH + 'white-knight.png', (6, 7), 'N', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn1 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (0, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn2 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (1, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn3 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (2, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn4 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (3, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn5 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (4, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn6 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (5, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn7 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (6, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
-        self.w_pawn8 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (7, 6), 'P', self.game_manager, self, self.ui_manager, self.screen)
+        self.w_king = King(CHESS_PIECES_PATH + 'white-king.png', (4, 7), 'K', self.game_manager, self, self.screen)
+        self.w_queen = Queen(CHESS_PIECES_PATH + 'white-queen.png', (3, 7), 'Q', self.game_manager, self, self.screen)
+        self.w_rook1 = Rook(CHESS_PIECES_PATH + 'white-rook.png', (0, 7), 'R', self.game_manager, self, self.screen)
+        self.w_bishop1 = Bishop(CHESS_PIECES_PATH + 'white-bishop.png', (2, 7), 'B', self.game_manager, self, self.screen)
+        self.w_knight1 = Knight(CHESS_PIECES_PATH + 'white-knight.png', (1, 7), 'N', self.game_manager, self, self.screen)
+        self.w_rook2 = Rook(CHESS_PIECES_PATH + 'white-rook.png', (7, 7), 'R', self.game_manager, self, self.screen)
+        self.w_bishop2 = Bishop(CHESS_PIECES_PATH + 'white-bishop.png', (5, 7), 'B', self.game_manager, self, self.screen)
+        self.w_knight2 = Knight(CHESS_PIECES_PATH + 'white-knight.png', (6, 7), 'N', self.game_manager, self, self.screen)
+        self.w_pawn1 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (0, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn2 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (1, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn3 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (2, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn4 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (3, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn5 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (4, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn6 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (5, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn7 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (6, 6), 'P', self.game_manager, self, self.screen)
+        self.w_pawn8 = Pawn(CHESS_PIECES_PATH + 'white-pawn.png', (7, 6), 'P', self.game_manager, self, self.screen)
 
-        self.b_king = King(CHESS_PIECES_PATH + 'black-king.png', (4, 0), 'k', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_queen = Queen(CHESS_PIECES_PATH + 'black-queen.png', (3, 0), 'q', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_rook1 = Rook(CHESS_PIECES_PATH + 'black-rook.png', (0, 0), 'r', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_bishop1 = Bishop(CHESS_PIECES_PATH + 'black-bishop.png', (2, 0), 'b', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_knight1 = Knight(CHESS_PIECES_PATH + 'black-knight.png', (1, 0), 'n', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_rook2 = Rook(CHESS_PIECES_PATH + 'black-rook.png', (7, 0), 'r', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_bishop2 = Bishop(CHESS_PIECES_PATH + 'black-bishop.png', (5, 0), 'b', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_knight2 = Knight(CHESS_PIECES_PATH + 'black-knight.png', (6, 0), 'n', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn1 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (0, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn2 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (1, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn3 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (2, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn4 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (3, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn5 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (4, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn6 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (5, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn7 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (6, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
-        self.b_pawn8 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (7, 1), 'p', self.game_manager, self, self.ui_manager, self.screen)
+        self.b_king = King(CHESS_PIECES_PATH + 'black-king.png', (4, 0), 'k', self.game_manager, self, self.screen)
+        self.b_queen = Queen(CHESS_PIECES_PATH + 'black-queen.png', (3, 0), 'q', self.game_manager, self, self.screen)
+        self.b_rook1 = Rook(CHESS_PIECES_PATH + 'black-rook.png', (0, 0), 'r', self.game_manager, self, self.screen)
+        self.b_bishop1 = Bishop(CHESS_PIECES_PATH + 'black-bishop.png', (2, 0), 'b', self.game_manager, self, self.screen)
+        self.b_knight1 = Knight(CHESS_PIECES_PATH + 'black-knight.png', (1, 0), 'n', self.game_manager, self, self.screen)
+        self.b_rook2 = Rook(CHESS_PIECES_PATH + 'black-rook.png', (7, 0), 'r', self.game_manager, self, self.screen)
+        self.b_bishop2 = Bishop(CHESS_PIECES_PATH + 'black-bishop.png', (5, 0), 'b', self.game_manager, self, self.screen)
+        self.b_knight2 = Knight(CHESS_PIECES_PATH + 'black-knight.png', (6, 0), 'n', self.game_manager, self, self.screen)
+        self.b_pawn1 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (0, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn2 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (1, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn3 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (2, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn4 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (3, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn5 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (4, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn6 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (5, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn7 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (6, 1), 'p', self.game_manager, self, self.screen)
+        self.b_pawn8 = Pawn(CHESS_PIECES_PATH + 'black-pawn.png', (7, 1), 'p', self.game_manager, self, self.screen)
 
     def import_fen(self, fen_string):
         rank = 0
@@ -268,9 +267,14 @@ class Board:
         piece = self.get_piece_on_square(start_square)
         piece.animate_move(start_index, end_index)
 
-    def reset_board(self):
-        self.import_fen(START_POSITION_FEN_W)
-        self.moves_list = [START_POSITION_FEN_W]
+    def reset_board(self, user_color):
+        self.user_colour = user_color
+        if user_color == 'w':
+            self.import_fen(START_POSITION_FEN_W)
+            self.moves_list = [START_POSITION_FEN_W]
+        else:
+            self.import_fen(START_POSITION_FEN_B)
+            self.moves_list = [START_POSITION_FEN_B]
         self.move_number = 0
         self.can_move = True
         self.update_move_squares()
@@ -301,7 +305,7 @@ class Board:
 
     def handle_event(self, event):
         current_state = self.state_manager.get_state()
-        if not (current_state == AppState.TRAINING or current_state == AppState.PRACTICE):
+        if current_state is (AppState.MAIN_MENU or AppState.QUIT):
             return
 
         if event.type == MOUSEBUTTONDOWN:
@@ -367,10 +371,9 @@ class Board:
                 self.moves_list.append(self.generate_fen())
                 self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
 
-                if self.trainer.is_training:
-                    self.trainer.move()
+                if not self.trainer.is_training_batch_finished:
+                    self.trainer.train()
                 else:
-                    self.ui_manager.refresh()
                     self.game_manager.update_legal_moves()
                 
         if event.type == KEYDOWN:
@@ -395,8 +398,7 @@ class Board:
                     self.can_move = True
             
             elif event.key == K_z:
-                if not self.trainer.is_training:
-                    self.undo()
+                pass
                     
             elif event.key == K_f:
                 print(self.generate_fen())
@@ -405,7 +407,7 @@ class Board:
 class Piece:
     picked = None
 
-    def __init__(self, image_location, position, id, game_manager, board, ui_manager, screen):
+    def __init__(self, image_location, position, id, game_manager, board, screen):
         self.screen = screen
         self.surf = pygame.image.load(image_location).convert_alpha()
         self.rect = self.surf.get_rect(topleft=(position[0] * SQUARE_SIZE, position[1] * SQUARE_SIZE))
@@ -414,12 +416,11 @@ class Piece:
         self.position = position
         self.board = board
         self.game_manager = game_manager
-        self.ui_manager = ui_manager
         self.board.pieces_pos_list[position[0]][position[1]] = self
         self.board.pieces_list.append(self)
         self.animating = False
         self.time = 0
-        self.duration = 20
+        self.duration = MOVE_ANIMATION_DURATION
         self.update_position(self.position)
 
     def update_position(self, position):
@@ -443,8 +444,10 @@ class Piece:
             return 1 - 8 * (1 - t) ** 4
 
     def animate_move(self, start_pos, end_pos):
-        self.start_pos = (start_pos[0] * SQUARE_SIZE, start_pos[1] * SQUARE_SIZE)
-        self.end_pos = (end_pos[0] * SQUARE_SIZE, end_pos[1] * SQUARE_SIZE)
+        start_point = (start_pos[0] * SQUARE_SIZE, start_pos[1] * SQUARE_SIZE)
+        end_point = (end_pos[0] * SQUARE_SIZE, end_pos[1] * SQUARE_SIZE)
+        self.start_pos = self.board.closest_point(start_point, self.board.square_centers)
+        self.end_pos = self.board.closest_point(end_point, self.board.square_centers)
         self.board.pieces_list.remove(self)
         self.board.pieces_list.append(self)
         self.animating = True
@@ -462,11 +465,10 @@ class Piece:
                 self.board.colour_to_move = fen.split()[1]
                 self.game_manager.castle_info = fen.split()[2]
                 self.game_manager.en_passant_target_square = fen.split()[3]
-                self.ui_manager.refresh()
                 self.game_manager.update_legal_moves()
                 return
 
-            self.rect.topleft = (
+            self.rect.center = (
                 self.start_pos[0] + (self.end_pos[0] - self.start_pos[0]) * t,
                 self.start_pos[1] + (self.end_pos[1] - self.start_pos[1]) * t
             )

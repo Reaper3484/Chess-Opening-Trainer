@@ -3,63 +3,59 @@ from constants import *
 from datetime import datetime, timedelta
 
 
+class PracticeManager:
+    pass
+
+
+class OpeningAdder:
+    pass
+
+
 class Trainer:
     def __init__(self) -> None:
+        self.scheduler = Scheduler()
         self.board = None
+        self.state_manager = None
         self.opening_data = self.load_opening_data()
-        self.today_training_batch = self.get_training_batch()
-        self.is_training = False
-        pass
+        self.today_training_batch = self.scheduler.get_training_batch(self.opening_data['openings'])
+        self.is_training_batch_finished = True
 
-    def initialize_dependencies(self, board):
+    def initialize_dependencies(self, board, state_manager):
         self.board = board
+        self.state_manager = state_manager
 
     def load_opening_data(self):
         data = {}
-        with open('opening_data.json') as file:
+        with open(DATA_FILE, 'r') as file:
             data = json.load(file) 
             return data
 
-    def get_training_batch(self):
-        batch = []
-        today = str(datetime.date(datetime.today()))
-        for opening in self.opening_data['openings']:
-            if opening['next_review'] == today:
-                batch.append(opening)
-        return batch
-
-    def calculate_next_review_date(self, interval):
-        today = datetime.now()
-        next_review = today + timedelta(days=interval)
-        return next_review.strftime('%d-%m-%Y')
+    def save_data(self):
+        with open(DATA_FILE, 'w') as file:
+            json.dump(self.opening_data, file, indent=4)
 
     def train_next(self):
         if self.today_training_batch:
-            self.is_training = True
+            self.is_training_batch_finished = False
             opening = self.today_training_batch.pop(0)
             self.start_training(opening)
             return opening['name']
 
-        self.is_training = False
+        self.training_batch_finished = True
         return 'Finished!'
 
     def start_training(self, opening):
-        self.board.reset_board()
         self.moves_list = opening['moves_list']
-        self.ai_color = opening['ai_color']
-        if self.ai_color == 'w':
-            self.board.user_colour = 'b'
-            self.board.import_fen(START_POSITION_FEN_B)
-            self.board.moves_list = [START_POSITION_FEN_B]
+        self.user_color = opening['user_color']
+        self.board.reset_board(self.user_color)
+        self.current_opening = opening
+        if self.user_color == 'b':
             self.make_move()
 
     def make_move(self):
         fen = self.moves_list[self.board.move_number]
         self.board.move_number += 1
         self.board.moves_list.append(fen)
-
-        if self.board.move_number == len(self.moves_list):
-            self.is_training = False
 
         squares = self.board.get_positions_changed(self.board.move_number - 1, self.board.move_number)
         if len(squares) == 4:
@@ -87,12 +83,91 @@ class Trainer:
         self.board.set_square_colour(sq2, NEXT_CORRECT_SQUARE_COLOR)
         self.board.moves_list.pop()
     
-    def move(self):
+    def submit_user_response(self, response):
+        self.scheduler.update_srs_parameters(self.current_opening, response)
+        self.scheduler.schedule_opening(self.current_opening, self.today_training_batch)
+        self.save_data()
+    
+    def train(self):
         user_move = self.board.moves_list[self.board.move_number]
         correct_move = self.moves_list[self.board.move_number - 1]
         if user_move == correct_move:
             self.make_move()
+            if self.board.move_number == len(self.moves_list):
+                self.board.can_move = False
+                self.state_manager.get_user_response()
             return
 
         self.board.undo()
         self.show_correct_move()
+
+
+class Scheduler:
+    def get_training_batch(self, openings):
+        today = self.get_today_datetime()
+        due_openings = [o for o in openings if o["next_review"] <= today]
+        return sorted(due_openings, key=lambda x: x["next_review"])
+
+    def schedule_opening(self, opening, queue):
+        today = self.get_today_datetime()
+        if opening["next_review"] <= today:
+            queue.append(opening)
+            queue.sort(key=lambda x: x["next_review"])  
+
+    def next_review_datetime(self, days=0, minutes=0):
+        next_review = datetime.now() + timedelta(days=days, minutes=minutes)
+        return next_review.strftime("%Y-%m-%dT%H:%M:%S")
+    
+    def get_today_datetime(self):
+        return (datetime.now() + timedelta(minutes=LEARN_AHEAD_TIME)).strftime("%Y-%m-%dT%H:%M:%S")
+
+    def update_srs_parameters(self, opening, response):
+        if opening["type"] == "learning":
+            self.update_learning_parameters(opening, response)
+        elif opening["type"] == "relearning":
+            self.update_relearning_parameters(opening, response)
+        elif opening["type"] == "review":
+            self.update_review_parameters(opening, response)
+
+    def update_learning_parameters(self, opening, response):
+        if response == "Again":
+            opening["current_step"] = 0
+        elif response == "Good":
+            opening["current_step"] += 1
+        
+        if opening["current_step"] < len(LEARNING_STEPS):
+            interval = LEARNING_STEPS[opening["current_step"]]
+            opening["next_review"] = self.next_review_datetime(minutes=interval)
+        else:
+            opening["type"] = "review"
+            opening["interval"] = 1
+            opening["next_review"] = self.next_review_datetime(days=1)
+
+    def update_relearning_parameters(self, opening, response):
+        if response == "Again":
+            opening["current_step"] = 0
+        elif response == "Good":
+            opening["current_step"] += 1
+        
+        if opening["current_step"] < len(LEARNING_STEPS):
+            interval = LEARNING_STEPS[opening["current_step"]]
+            opening["next_review"] = self.next_review_datetime(minutes=interval)
+        else:
+            opening["type"] = "review"
+            opening["next_review"] = self.next_review_datetime(days=opening["interval"])
+
+    def update_review_parameters(self, opening, response):
+        if response == "Again":
+            opening["type"] = "relearning"
+            opening["ease"] = max(1.3, opening["ease"] - 0.2)
+            opening["interval"] *= NEW_INTERVAL_FACTOR
+            opening["current_step"] = 0
+            opening["next_review"] = self.next_review_datetime(minutes=LEARNING_STEPS[0])
+        elif response == "Hard":
+            opening["ease"] = max(1.3, opening["ease"] - 0.15)
+            opening["interval"] *= HARD_INTERVAL_FACTOR
+            opening["next_review"] = self.next_review_datetime(days=opening["interval"])
+        elif response == "Good":
+            opening["interval"] *= opening["ease"]
+            opening["next_review"] = self.next_review_datetime(days=opening["interval"])
+
