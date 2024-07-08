@@ -1,28 +1,27 @@
 import json
 from constants import *
 from datetime import datetime, timedelta
+from board import Board
 
 
 class PracticeManager:
-    pass
+    def __init__(self, screen, state_manager) -> None:
+        self.board = Board(screen, state_manager)
 
 
 class OpeningAdder:
-    pass
+    def __init__(self, screen, state_manager) -> None:
+        self.board = Board(screen, state_manager)
 
 
 class Trainer:
-    def __init__(self) -> None:
+    def __init__(self, screen, state_manager) -> None:
         self.scheduler = Scheduler()
-        self.board = None
-        self.state_manager = None
+        self.board = Board(screen, state_manager)
+        self.state_manager = state_manager
         self.opening_data = self.load_opening_data()
         self.today_training_batch = self.scheduler.get_training_batch(self.opening_data['openings'])
         self.is_training_batch_finished = True
-
-    def initialize_dependencies(self, board, state_manager):
-        self.board = board
-        self.state_manager = state_manager
 
     def load_opening_data(self):
         data = {}
@@ -38,19 +37,17 @@ class Trainer:
         if self.today_training_batch:
             self.is_training_batch_finished = False
             opening = self.today_training_batch.pop(0)
-            self.start_training(opening)
+            self.moves_list = opening['moves_list']
+            self.user_color = opening['user_color']
+            self.board.reset_board(self.user_color)
+            self.current_opening = opening
+            if self.user_color == 'b':
+                self.make_move()
+
             return opening['name']
 
         self.training_batch_finished = True
         return 'Finished!'
-
-    def start_training(self, opening):
-        self.moves_list = opening['moves_list']
-        self.user_color = opening['user_color']
-        self.board.reset_board(self.user_color)
-        self.current_opening = opening
-        if self.user_color == 'b':
-            self.make_move()
 
     def make_move(self):
         fen = self.moves_list[self.board.move_number]

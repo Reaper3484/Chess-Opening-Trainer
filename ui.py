@@ -208,19 +208,13 @@ class IconButton:
 
 
 class UIManager:
-    def __init__(self, screen):
+    def __init__(self, screen, trainer, opening_adder, practice_manager, state_manager):
         self.screen = screen
-        self.screen_width, self.screen_height= self.screen.get_width(), self.screen.get_height()
-        self.board = None
-        self.game_manager = None
-        self.trainer = None
-        self.state_manager = None
-    
-    def initialize_dependencies(self, board, game_manager, trainer, state_manager):
-        self.board = board
-        self.game_manager = game_manager
         self.trainer = trainer
+        self.opening_adder = opening_adder
+        self.practice_manager = practice_manager
         self.state_manager = state_manager
+        self.screen_width, self.screen_height= self.screen.get_width(), self.screen.get_height()
         self.initialize()
 
     def initialize(self):
@@ -272,18 +266,19 @@ class UIManager:
                     button.handle_event(event)
 
             case AppState.TRAINING:
+                self.trainer.board.handle_event(event)
                 for button in self.trainer_buttons:
                     button.handle_event(event)
                 for button in self.review_buttons:
                     button.handle_event(event)
 
             case AppState.ADD_OPENING:
-                self.board.handle_event(event)
+                self.opening_adder.board.handle_event(event)
                 for button in self.add_opening_buttons:
                     button.handle_event(event)
 
             case AppState.PRACTICE:
-                self.board.handle_event(event)
+                self.practice_manager.board.handle_event(event)
                 for button in self.practice_buttons:
                     button.handle_event(event)
                 
@@ -303,12 +298,12 @@ class UIManager:
                 self.trainer_main_text.draw(self.screen)
             
             case AppState.ADD_OPENING:
-                self.board.draw_board()
+                self.opening_adder.board.draw_board()
                 for button in self.add_opening_buttons:
                     button.draw(self.screen)
 
             case AppState.PRACTICE:
-                self.board.draw_board()
+                self.practice_manager.board.draw_board()
                 for button in self.practice_buttons:
                     button.draw(self.screen)
 
@@ -367,10 +362,9 @@ class UIManager:
             button.set_active(False)
 
     def flip(self):
-        self.board.user_colour = 'w' if self.board.user_colour == 'b' else 'b'
-        fen = ''
-        old_fen = self.board.generate_fen()
-        fen = old_fen.split()[0][-2::-1] + ' ' + ' '.join(old_fen.split()[1:])
-        
-        self.board.import_fen(fen)
-        self.game_manager.update_legal_moves()
+        match self.state_manager.get_state():
+            case AppState.TRAINING:
+                self.trainer.board.flip()
+            case AppState.ADD_OPENING:
+                self.opening_adder.board.flip()
+            

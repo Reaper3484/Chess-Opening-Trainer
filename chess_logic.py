@@ -1,15 +1,11 @@
 class GameManager:
-    def __init__(self):
-        self.board = None
-        self.state_manager = None
+    def __init__(self, board, state_manager):
+        self.board = board
+        self.state_manager = state_manager
         self.en_passant_target_square = '-'
         self.castle_info = 'KQkq'
         self.castling_in_progress = False
         self.legal_moves_dict = {}
-
-    def initialize_dependencies(self, board, state_manager):
-        self.board = board
-        self.state_manager = state_manager
 
     def index_to_chess_notation(self, index):
         files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']

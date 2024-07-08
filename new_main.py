@@ -1,10 +1,8 @@
 import pygame
 from pygame.locals import *
 from constants import *
-from board import Board 
 from ui import UIManager
-from chess_logic import GameManager
-from training import Trainer
+from training import Trainer, OpeningAdder, PracticeManager
 from state_manager import StateManager, AppState
 
 
@@ -15,17 +13,14 @@ class ChessOpeningTrainerApp:
         self.screen = pygame.display.set_mode()
         self.clock = pygame.time.Clock()
 
-        self.board = Board(self.screen)
-        self.ui_manager = UIManager(self.screen)
-        self.game_manager = GameManager()
-        self.trainer = Trainer()
         self.state_manager = StateManager()
-        self.set_dependencies()
+        self.trainer = Trainer(self.screen, self.state_manager)
+        self.opening_adder = OpeningAdder(self.screen, self.state_manager)
+        self.practice_manager = PracticeManager(self.screen, self.state_manager)
+        self.ui_manager = UIManager(self.screen, self.trainer, self.opening_adder, self.practice_manager, self.state_manager)
+        self.state_manager.initialize_dependencies(self.ui_manager, self.trainer, self.opening_adder, self.practice_manager)
     
     def run(self):
-        self.board.import_fen(START_POSITION_FEN_W)
-        self.board.moves_list.append(START_POSITION_FEN_W)
-
         running = True
         while running:
             if self.state_manager.get_state() == AppState.QUIT:
@@ -35,7 +30,6 @@ class ChessOpeningTrainerApp:
                 if event.type == QUIT:
                     running = False
 
-                self.board.handle_event(event)
                 self.ui_manager.handle_event(event)
                     
             self.screen.fill(SCREEN_BG_COLOR)
@@ -45,13 +39,6 @@ class ChessOpeningTrainerApp:
             pygame.display.update()
         
         pygame.quit()
-    
-    def set_dependencies(self):
-        self.board.initialize_dependencies(self.ui_manager, self.game_manager, self.trainer, self.state_manager)
-        self.ui_manager.initialize_dependencies(self.board, self.game_manager, self.trainer, self.state_manager)
-        self.game_manager.initialize_dependencies(self.board, self.state_manager)
-        self.trainer.initialize_dependencies(self.board, self.state_manager)
-        self.state_manager.initialize_dependencies(self.board, self.ui_manager, self.game_manager, self.trainer)
 
 
 if __name__ == '__main__':

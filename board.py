@@ -3,15 +3,14 @@ from pygame.locals import *
 from constants import *
 from state_manager import AppState
 import math
+from chess_logic import GameManager
 
 
 class Board:
-    def __init__(self, screen):
+    def __init__(self, screen, state_manager):
         self.screen = screen
-        self.game_manager = None
-        self.ui_manager = None
-        self.state_manager = None
-        self.trainer = None
+        self.game_manager = GameManager(self, state_manager)
+        self.state_manager = state_manager
         self.square_list = [[None for _ in range(8)] for _ in range(8)]
         self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
         self.square_centers = []
@@ -25,14 +24,10 @@ class Board:
         self.move_squares_list = []
         self.possible_moves_list = []
         self.hover_pos = None    
-    
-    def initialize_dependencies(self, ui_manager, game_manager, trainer, state_manager):
-        self.game_manager = game_manager
-        self.state_manager = state_manager
-        self.trainer = trainer
         self.initialize_board()
         self.initialize_pieces()
-
+        self.reset_board('w')
+    
     def initialize_board(self):
         for i in range(8):
             for j in range(8):
@@ -291,6 +286,15 @@ class Board:
             self.moves_list.pop()
             self.update_move_squares()
 
+    def flip(self):
+        self.user_colour = 'w' if self.user_colour == 'b' else 'b'
+        fen = ''
+        old_fen = self.generate_fen()
+        fen = old_fen.split()[0][-2::-1] + ' ' + ' '.join(old_fen.split()[1:])
+        
+        self.import_fen(fen)
+        self.game_manager.update_legal_moves()
+
     def draw_board(self):
         for i in range(8):
             for j in range(8):
@@ -370,10 +374,7 @@ class Board:
                 self.update_move_squares()
                 self.moves_list.append(self.generate_fen())
                 self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
-
-                if not self.trainer.is_training_batch_finished:
-                    self.trainer.train()
-                else:
+                if self.state_manager.move_made():
                     self.game_manager.update_legal_moves()
                 
         if event.type == KEYDOWN:
