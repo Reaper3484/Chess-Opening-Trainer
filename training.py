@@ -4,16 +4,6 @@ from datetime import datetime, timedelta
 from board import Board
 
 
-class PracticeManager:
-    def __init__(self, screen, state_manager) -> None:
-        self.board = Board(screen, state_manager)
-
-
-class OpeningAdder:
-    def __init__(self, screen, state_manager) -> None:
-        self.board = Board(screen, state_manager)
-
-
 class Trainer:
     def __init__(self, screen, state_manager) -> None:
         self.scheduler = Scheduler()
@@ -33,6 +23,23 @@ class Trainer:
         with open(DATA_FILE, 'w') as file:
             json.dump(self.opening_data, file, indent=4)
 
+    def add_new_opening(self, name, color, moves):
+        new_opening = {
+            "name": name,
+            "user_color": color,
+            "moves_list": moves,
+            "next_review": self.scheduler.next_review_datetime(minutes=LEARNING_STEPS[0]),
+            "interval": 1,
+            "ease": 2.5,
+            "current_step": 0,
+            "type": "learning"
+        }
+
+        self.opening_data["openings"].append(new_opening)
+        self.opening_data["openings"].sort(key=lambda x: x["next_review"])
+        self.save_data()
+        self.today_training_batch = self.scheduler.get_training_batch(self.opening_data['openings'])
+
     def train_next(self):
         if self.today_training_batch:
             self.is_training_batch_finished = False
@@ -40,6 +47,8 @@ class Trainer:
             self.moves_list = opening['moves_list']
             self.user_color = opening['user_color']
             self.board.reset_board(self.user_color)
+            self.moves_list = self.moves_list.copy()
+            self.board.import_fen(self.moves_list.pop(0))
             self.current_opening = opening
             if self.user_color == 'b':
                 self.make_move()
@@ -86,6 +95,11 @@ class Trainer:
         self.save_data()
     
     def train(self):
+        if self.board.move_number == len(self.moves_list):
+            self.board.can_move = False
+            self.state_manager.get_user_response()
+            return
+
         user_move = self.board.moves_list[self.board.move_number]
         correct_move = self.moves_list[self.board.move_number - 1]
         if user_move == correct_move:

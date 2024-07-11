@@ -7,10 +7,12 @@ from chess_logic import GameManager
 
 
 class Board:
-    def __init__(self, screen, state_manager):
+    def __init__(self, screen, state_manager, pos=(0, 0), padding=BUTTON_PADDING):
         self.screen = screen
         self.game_manager = GameManager(self, state_manager)
         self.state_manager = state_manager
+        self.board_pos = pos
+        self.rect = pygame.Rect(self.board_pos[0] + padding, self.board_pos[1] + padding, SQUARE_SIZE * 8, SQUARE_SIZE * 8)
         self.square_list = [[None for _ in range(8)] for _ in range(8)]
         self.pieces_pos_list = [[None for _ in range(8)] for _ in range(8)]
         self.square_centers = []
@@ -32,7 +34,8 @@ class Board:
         for i in range(8):
             for j in range(8):
                 square_surf = pygame.Surface((SQUARE_SIZE, SQUARE_SIZE))
-                square_rect = square_surf.get_rect(topleft = (i * SQUARE_SIZE, j * SQUARE_SIZE))
+                square_pos = (i * SQUARE_SIZE + self.board_pos[0], j * SQUARE_SIZE + self.board_pos[1])
+                square_rect = square_surf.get_rect(topleft = square_pos)
                 self.square_centers.append(square_rect.center)
                 if ((i % 2 == 0 and j % 2 == 0) or (i % 2 == 1 and j % 2 == 1)):
                     square_surf.fill(LIGHT_SQUARE_COLOR)
@@ -190,9 +193,12 @@ class Board:
     def highlight_possible_moves(self):
         for x, y in self.possible_moves_list:
             if (x, y) == self.hover_pos:
-                pygame.draw.rect(self.screen, LEGAL_MOVE_HIGHLIGHT_COLOR, (x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE), 10)
+                pygame.draw.rect(self.screen, LEGAL_MOVE_HIGHLIGHT_COLOR, (x * SQUARE_SIZE + self.board_pos[0],
+                                                                           y * SQUARE_SIZE + self.board_pos[1], 
+                                                                           SQUARE_SIZE, SQUARE_SIZE), 10)
 
-            center = (x * SQUARE_SIZE + SQUARE_SIZE // 2, y * SQUARE_SIZE + SQUARE_SIZE // 2)
+            center = (x * SQUARE_SIZE + SQUARE_SIZE // 2 + self.board_pos[0], 
+                      y * SQUARE_SIZE + SQUARE_SIZE // 2 + self.board_pos[1])
             if self.get_piece_on_pos((x, y)):
                 pygame.draw.circle(self.screen, LEGAL_MOVE_HIGHLIGHT_COLOR, center, SQUARE_SIZE // 2, 10)
             else:
@@ -295,7 +301,30 @@ class Board:
         self.import_fen(fen)
         self.game_manager.update_legal_moves()
 
+    def get_algebraic_notation(self, piece, old_pos, new_pos, capture, check, castle):
+        if castle:
+            return castle + check
+
+        # Piece type
+        piece_type = '' if piece.id.lower() == 'p' else piece.id.upper()
+        
+        # File and rank of the destination square
+        destination = self.game_manager.index_to_chess_notation(new_pos)
+
+        # Disambiguation
+        disambiguation = ''
+        # if piece_type and any(p != piece and p.id == piece.id and p.colour == piece.colour and new_pos in p.possible_moves for p in self.pieces_list):
+        #     same_file = any(p != piece and p.name == piece.name and p.colour == piece.colour and p.position[1] == old_pos[1] for p in self.pieces_list)
+        #     if same_file:
+        #         disambiguation = ranks[7 - old_pos[0]]
+        #     else:
+        #         disambiguation = files[old_pos[1]]
+
+        return piece_type + disambiguation + capture + destination + check
+
     def draw_board(self):
+        pygame.draw.rect(self.screen, BUTTON_SHADOW_COLOR, self.rect, border_radius=0)
+
         for i in range(8):
             for j in range(8):
                 square = self.square_list[i][j]
@@ -355,17 +384,21 @@ class Board:
                     self.possible_moves_list = []
                     return
                 
+                capture = ''
+                castle = ''
                 piece = self.get_piece_on_pos(new_pos)
                 if piece and piece.colour != self.colour_to_move: 
                     self.pieces_list.remove(piece) 
+                    capture = 'x'
                 elif piece and piece.colour == self.colour_to_move:
-                    new_pos = self.game_manager.castle(Piece.picked, piece)
+                    new_pos, castle = self.game_manager.castle(Piece.picked, piece)
 
                 Piece.picked.update_position(new_pos)
 
                 self.game_manager.en_passant(Piece.picked, old_pos)
                 self.game_manager.update_castling_rights(Piece.picked, old_pos)
 
+                piece = Piece.picked
                 Piece.picked = None
                 self.possible_moves_list = []
                 self.hover_pos = None
@@ -374,8 +407,9 @@ class Board:
                 self.update_move_squares()
                 self.moves_list.append(self.generate_fen())
                 self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
-                if self.state_manager.move_made():
-                    self.game_manager.update_legal_moves()
+                check = self.game_manager.update_legal_moves()
+                move_notation = self.get_algebraic_notation(piece, old_pos, new_pos, capture, check, castle)
+                self.state_manager.move_made(move_notation)
                 
         if event.type == KEYDOWN:
             if event.key == K_LEFT:
@@ -399,10 +433,11 @@ class Board:
                     self.can_move = True
             
             elif event.key == K_z:
-                pass
-                    
-            elif event.key == K_f:
-                print(self.generate_fen())
+                match self.state_manager.state:
+                    case AppState.TRAINING:
+                        pass
+                    case _:
+                        self.undo()
 
 
 class Piece:
@@ -426,7 +461,7 @@ class Piece:
 
     def update_position(self, position):
         self.position = position
-        self.rect.topleft = (self.position[0] * SQUARE_SIZE, self.position[1] * SQUARE_SIZE)
+        self.rect.topleft = (self.position[0] * SQUARE_SIZE + self.board.board_pos[0], self.position[1] * SQUARE_SIZE + self.board.board_pos[1]) 
         self.rect.center = self.board.closest_point(self.rect.center, self.board.square_centers)
 
     def get_position(self):
@@ -445,8 +480,8 @@ class Piece:
             return 1 - 8 * (1 - t) ** 4
 
     def animate_move(self, start_pos, end_pos):
-        start_point = (start_pos[0] * SQUARE_SIZE, start_pos[1] * SQUARE_SIZE)
-        end_point = (end_pos[0] * SQUARE_SIZE, end_pos[1] * SQUARE_SIZE)
+        start_point = (start_pos[0] * SQUARE_SIZE + self.board.board_pos[0], start_pos[1] * SQUARE_SIZE + self.board.board_pos[1]) 
+        end_point = (end_pos[0] * SQUARE_SIZE + self.board.board_pos[0], end_pos[1] * SQUARE_SIZE + self.board.board_pos[1])
         self.start_pos = self.board.closest_point(start_point, self.board.square_centers)
         self.end_pos = self.board.closest_point(end_point, self.board.square_centers)
         self.board.pieces_list.remove(self)

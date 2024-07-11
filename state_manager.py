@@ -13,22 +13,23 @@ class StateManager:
         self.state = AppState.MAIN_MENU 
         self.is_training_opening = False
 
-    def initialize_dependencies(self, ui_manager, trainer, opening_adder, practice_manager): 
+    def initialize_dependencies(self, ui_manager, trainer): 
         self.ui_manager = ui_manager
         self.trainer = trainer
-        self.opening_adder = opening_adder
-        self.practice_manager = practice_manager
 
     def get_user_response(self):
         for button in self.ui_manager.review_buttons:
             button.set_active(True)
 
-    def move_made(self):
+    def move_made(self, move_notation):
         match self.state:
             case AppState.TRAINING:
-                self.trainer.train()
-            case _:
-                return True
+                if not self.trainer.is_training_batch_finished:
+                    self.trainer.train()
+                # self.ui_manager.moves_display.add_item(move_notation)
+
+            case AppState.ADD_OPENING:
+                self.ui_manager.moves_display.add_item(move_notation)
 
     def set_state(self, state):
         self.state = state

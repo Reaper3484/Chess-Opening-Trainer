@@ -11,6 +11,10 @@ class GameManager:
         files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ranks = ['1', '2', '3', '4', '5', '6', '7', '8']
         
+        if self.board.user_colour == 'b':
+            files = files[::-1]
+            ranks = ranks[::-1]
+
         file = files[index[0]]
         rank = ranks[7 - index[1]]
         
@@ -66,11 +70,20 @@ class GameManager:
                 if legal_moves:
                     no_legal_moves = False
 
+        check = False
+        if self.is_king_in_check(king):
+            check = True
+
         if no_legal_moves:
-            if self.is_king_in_check(king):
-                print('Checkmate')
+            if check:
+                return '#'
             else:
-                print('Stalemate')
+                return '1/2'
+
+        if check:
+            return '+'
+
+        return ''
 
     def en_passant(self, pawn, old_pos):
         new_pos = pawn.get_position()
@@ -168,7 +181,7 @@ class GameManager:
             new_rook_pos = (king_pos[0] + 1, rook_pos[1])
         else:  # Queen-side castling
             new_king_pos = (king_pos[0] - 2, king_pos[1])
-            new_rook_pos = (king_pos[0] - 1, rook_pos[1])        
+            new_rook_pos = (king_pos[0] - 1, rook_pos[1])      
 
         if king.colour == 'w': 
             self.castle_info = ''.join([char for char in self.castle_info if char.islower()])
@@ -177,4 +190,6 @@ class GameManager:
 
         self.castle_info = '-' if not self.castle_info else self.castle_info
         rook.update_position(new_rook_pos) 
-        return new_king_pos
+
+        castle = 'O-O' if abs(rook_pos[0] - new_rook_pos[0]) == 2 else 'O-O-O'
+        return new_king_pos, castle

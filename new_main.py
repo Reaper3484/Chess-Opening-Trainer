@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 from constants import *
 from ui import UIManager
-from training import Trainer, OpeningAdder, PracticeManager
+from training import Trainer
 from state_manager import StateManager, AppState
 
 
@@ -15,10 +15,8 @@ class ChessOpeningTrainerApp:
 
         self.state_manager = StateManager()
         self.trainer = Trainer(self.screen, self.state_manager)
-        self.opening_adder = OpeningAdder(self.screen, self.state_manager)
-        self.practice_manager = PracticeManager(self.screen, self.state_manager)
-        self.ui_manager = UIManager(self.screen, self.trainer, self.opening_adder, self.practice_manager, self.state_manager)
-        self.state_manager.initialize_dependencies(self.ui_manager, self.trainer, self.opening_adder, self.practice_manager)
+        self.ui_manager = UIManager(self.screen, self.trainer, self.state_manager)
+        self.state_manager.initialize_dependencies(self.ui_manager, self.trainer)
     
     def run(self):
         running = True
@@ -28,11 +26,12 @@ class ChessOpeningTrainerApp:
                 
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    running = False
+                    running = False 
 
                 self.ui_manager.handle_event(event)
                     
             self.screen.fill(SCREEN_BG_COLOR)
+            self.ui_manager.update()
             self.ui_manager.draw()
 
             self.clock.tick(FRAME_RATE)
