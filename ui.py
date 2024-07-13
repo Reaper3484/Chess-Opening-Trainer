@@ -456,7 +456,10 @@ class UIManager:
         self.valid_fen_icon = Icon(None, (14 * SQUARE_SIZE - 60, MENU_BUTTON_HEIGHT * 2 - 20), (MENU_BUTTON_HEIGHT - 30, MENU_BUTTON_HEIGHT - 30))
         self.moves_display = ScrollableList((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT * 5), (TEXT_BOX_WIDTH, SQUARE_SIZE * 3))
         self.new_opening_name = TextBox((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT), TEXT_BOX_WIDTH, MENU_BUTTON_HEIGHT)
-        self.add_opening_button = Button('Add', self.add_opening, (9 * SQUARE_SIZE, 7 * SQUARE_SIZE), (170, 80))
+        self.add_opening_button = Button('Add', self.add_opening, (9 * SQUARE_SIZE, 7 * SQUARE_SIZE), (170, 80), is_active=False)
+        self.opening_adder_flip = IconButton(IMAGE_PATH + 'flip_icon.png', self.flip, 
+                                             (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT * 3 + 20), 
+                                             (SQUARE_SIZE - 40, SQUARE_SIZE - 40))
 
         self.opening_adder_elements = [
             self.fen_text_box,
@@ -464,12 +467,11 @@ class UIManager:
             self.moves_display,
             self.new_opening_name,
             self.add_opening_button,
+            self.opening_adder_flip,
             IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
                    (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
             IconButton(IMAGE_PATH + 'paste_icon.png', self.paste_fen, 
                    (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT * 2 + 10), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
-            IconButton(IMAGE_PATH + 'flip_icon.png', self.flip, 
-                   (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT * 3 + 20), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
             Button('Cancel', self.reset_opening_view, (11 * SQUARE_SIZE, 7 * SQUARE_SIZE), (220, 80))
         ]
 
@@ -497,6 +499,12 @@ class UIManager:
                     self.add_opening_button.set_active(True)
                 else:
                     self.add_opening_button.set_active(False)
+
+                if self.opening_adder_board.move_number:
+                    self.opening_adder_flip.set_active(False)
+                else: 
+                    self.opening_adder_flip.set_active(True)
+
                 for element in self.opening_adder_elements:
                     element.handle_event(event)
 
@@ -589,9 +597,10 @@ class UIManager:
     def flip(self):
         match self.state_manager.get_state():
             case AppState.TRAINING:
-                self.trainer.board.flip()
+                self.trainer.board.reset()
             case AppState.ADD_OPENING:
-                self.opening_adder_board.flip()
+                new_colour = 'b' if self.opening_adder_board.user_colour == 'w' else 'w'
+                self.opening_adder_board.reset_board(new_colour)
 
     def paste_fen(self):
         text = pyperclip.paste()
@@ -617,3 +626,4 @@ class UIManager:
     def reset_opening_view(self):
         self.new_opening_name.set_text('')
         self.opening_adder_board.reset_board('w')
+        self.opening_adder_flip.set_active(True)
