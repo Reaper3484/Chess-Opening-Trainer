@@ -24,6 +24,10 @@ class GameManager:
         files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ranks = ['1', '2', '3', '4', '5', '6', '7', '8']
         
+        if self.board.user_colour == 'b':
+            files = files[::-1]
+            ranks = ranks[::-1]
+
         file = notation[0]
         rank = notation[1]
         
@@ -94,7 +98,7 @@ class GameManager:
                 captured_pawn = self.board.get_piece_on_pos((new_pos[0], old_pos[1]))
                 self.board.pieces_list.remove(captured_pawn)
                 self.en_passant_target_square = '-'
-                return
+                return True
 
         if pawn.id.lower() == 'p':
             if abs(new_pos[1] - old_pos[1]) == 2:

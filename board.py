@@ -291,6 +291,7 @@ class Board:
             self.move_squares_list.pop()
             self.moves_list.pop()
             self.update_move_squares()
+            self.state_manager.board_undo()
 
     def flip(self):
         self.user_colour = 'w' if self.user_colour == 'b' else 'b'
@@ -305,20 +306,28 @@ class Board:
         if castle:
             return castle + check
 
-        # Piece type
         piece_type = '' if piece.id.lower() == 'p' else piece.id.upper()
         
-        # File and rank of the destination square
         destination = self.game_manager.index_to_chess_notation(new_pos)
 
-        # Disambiguation
         disambiguation = ''
-        # if piece_type and any(p != piece and p.id == piece.id and p.colour == piece.colour and new_pos in p.possible_moves for p in self.pieces_list):
-        #     same_file = any(p != piece and p.name == piece.name and p.colour == piece.colour and p.position[1] == old_pos[1] for p in self.pieces_list)
-        #     if same_file:
-        #         disambiguation = ranks[7 - old_pos[0]]
-        #     else:
-        #         disambiguation = files[old_pos[1]]
+        if piece_type:
+            ambiguity = False
+            for p in self.pieces_list:
+                if p == piece or p.id != piece.id:
+                    continue
+                if new_pos in self.game_manager.legal_moves_dict[p]:
+                    ambiguity = True
+                    break
+
+            if ambiguity:
+                if p.get_position()[0] != old_pos[0]:
+                    disambiguation = self.game_manager.index_to_chess_notation(old_pos)[0] 
+                else:
+                    disambiguation = self.game_manager.index_to_chess_notation(old_pos)[1] 
+
+        elif capture:
+            disambiguation = self.game_manager.index_to_chess_notation(old_pos)[0] 
 
         return piece_type + disambiguation + capture + destination + check
 
@@ -395,7 +404,8 @@ class Board:
 
                 Piece.picked.update_position(new_pos)
 
-                self.game_manager.en_passant(Piece.picked, old_pos)
+                en_passant = self.game_manager.en_passant(Piece.picked, old_pos)
+                capture = 'x' if en_passant else capture
                 self.game_manager.update_castling_rights(Piece.picked, old_pos)
 
                 piece = Piece.picked

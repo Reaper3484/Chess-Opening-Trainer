@@ -26,10 +26,18 @@ class StateManager:
             case AppState.TRAINING:
                 if not self.trainer.is_training_batch_finished:
                     self.trainer.train()
-                # self.ui_manager.moves_display.add_item(move_notation)
 
             case AppState.ADD_OPENING:
-                self.ui_manager.moves_display.add_item(move_notation)
+                move_number = self.ui_manager.opening_adder_board.move_number
+                if move_number % 2:
+                    self.ui_manager.moves_display.add_item([move_notation])
+                else:
+                    self.ui_manager.moves_display.items[move_number // 2 - 1].append(move_notation) 
+    
+    def board_undo(self):
+        match self.state:
+            case AppState.ADD_OPENING:
+                self.ui_manager.moves_display.delete_last_item()
 
     def set_state(self, state):
         self.state = state

@@ -9,9 +9,8 @@ from board import Board
 import pygame
 
 class ScrollableList:
-    def __init__(self, center, size, font=None, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
-        self.rect = pygame.Rect(center, size)
-        self.rect.center = center
+    def __init__(self, pos, size, font=None, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
+        self.rect = pygame.Rect(pos, size)
         self.font = pygame.font.Font(font, 60)
         self.font_color = font_color
         self.bg_color = bg_color
@@ -34,6 +33,12 @@ class ScrollableList:
         if 0 <= index < len(self.items):
             del self.items[index]
             self.update_scrollbar()
+
+    def delete_last_item(self):
+        if len(self.items[-1]) == 2:
+            del self.items[-1][1]    
+        else:
+            del self.items[-1]
 
     def edit_item(self, index, new_item):
         if 0 <= index < len(self.items):
@@ -61,10 +66,15 @@ class ScrollableList:
         pygame.draw.rect(screen, self.bg_color, self.rect)
         
         visible_items = self.items[self.scroll_offset:self.scroll_offset + self.max_visible_items]
+        column_width = self.rect.width // 2
+
         for i, item in enumerate(visible_items):
-            text_surface = self.font.render(item, True, self.font_color)
-            screen.blit(text_surface, (self.rect.x, self.rect.y + i * self.font.get_height()))
-        
+            for j, element in enumerate(item):
+                text_surface = self.font.render(str(element), True, self.font_color)
+                x = self.rect.x + j * column_width
+                y = self.rect.y + i * self.font.get_height()
+                screen.blit(text_surface, (x, y))
+
         if self.scrollbar_visible:
             self.update_scrollbar()
             pygame.draw.rect(screen, self.scrollbar_color, self.scrollbar_rect)
@@ -454,7 +464,7 @@ class UIManager:
 
         self.fen_text_box = TextBox((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT * 2 + 10), TEXT_BOX_WIDTH, MENU_BUTTON_HEIGHT, self.validate_fen)
         self.valid_fen_icon = Icon(None, (14 * SQUARE_SIZE - 60, MENU_BUTTON_HEIGHT * 2 - 20), (MENU_BUTTON_HEIGHT - 30, MENU_BUTTON_HEIGHT - 30))
-        self.moves_display = ScrollableList((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT * 5), (TEXT_BOX_WIDTH, SQUARE_SIZE * 3))
+        self.moves_display = ScrollableList((8 * SQUARE_SIZE + 30, MENU_BUTTON_HEIGHT * 3 - 10), (TEXT_BOX_WIDTH, SQUARE_SIZE * 4))
         self.new_opening_name = TextBox((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT), TEXT_BOX_WIDTH, MENU_BUTTON_HEIGHT)
         self.add_opening_button = Button('Add', self.add_opening, (9 * SQUARE_SIZE, 7 * SQUARE_SIZE), (170, 80), is_active=False)
         self.opening_adder_flip = IconButton(IMAGE_PATH + 'flip_icon.png', self.flip, 
@@ -627,3 +637,4 @@ class UIManager:
         self.new_opening_name.set_text('')
         self.opening_adder_board.reset_board('w')
         self.opening_adder_flip.set_active(True)
+        self.moves_display.clear_items()
