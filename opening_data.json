@@ -1,7 +1,69 @@
 {
     "openings": [
         {
-            "name": "w - b",
+            "name": "bb",
+            "user_color": "b",
+            "moves_list": [
+                "RNBKQBNR/PPPPPPPP/////pppppppp/rnbkqbnr w KQkq -",
+                "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq e3",
+                "RNBKQBNR/PPP1PPPP/8/3P4/3p4/8/ppp1pppp/rnbkqbnr/ w KQkq e6",
+                "R1BKQBNR/PPP1PPPP/2N5/3P4/3p4/8/ppp1pppp/rnbkqbnr/ b KQkq -",
+                "R1BKQBNR/PPP1PPPP/2N5/3P4/3p4/2n5/ppp1pppp/r1bkqbnr/ w KQkq -"
+            ],
+            "notations_list": [
+                "e4",
+                "e5",
+                "Nf3",
+                "Nf6"
+            ],
+            "next_review": "2024-07-22T23:31:39",
+            "interval": 1,
+            "ease": 2.5,
+            "current_step": 0,
+            "type": "learning"
+        },
+        {
+            "name": "bw",
+            "user_color": "b",
+            "moves_list": [
+                "RNBKQBNR/PPPPPPPP/////pppppppp/rnbkqbnr w KQkq -",
+                "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq e3",
+                "RNBKQBNR/PPP1PPPP/8/3P4/3p4/8/ppp1pppp/rnbkqbnr/ w KQkq e6",
+                "R1BKQBNR/PPP1PPPP/2N5/3P4/3p4/8/ppp1pppp/rnbkqbnr/ b KQkq -"
+            ],
+            "notations_list": [
+                "e4",
+                "e5",
+                "Nf3"
+            ],
+            "next_review": "2024-07-22T23:40:45",
+            "interval": 1,
+            "ease": 2.5,
+            "current_step": 1,
+            "type": "learning"
+        },
+        {
+            "name": "ww",
+            "user_color": "w",
+            "moves_list": [
+                "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -",
+                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR/ b KQkq e3",
+                "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR/ w KQkq e6",
+                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -"
+            ],
+            "notations_list": [
+                "e4",
+                "e5",
+                "Nf3"
+            ],
+            "next_review": "2024-07-22T23:40:58",
+            "interval": 1,
+            "ease": 2.5,
+            "current_step": 1,
+            "type": "learning"
+        },
+        {
+            "name": "wb",
             "user_color": "w",
             "moves_list": [
                 "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -",
@@ -10,56 +72,16 @@
                 "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -",
                 "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ w KQkq -"
             ],
-            "next_review": "2024-07-12T02:34:58",
-            "interval": 1,
-            "ease": 2.5,
-            "current_step": 2,
-            "type": "learning"
-        },
-        {
-            "name": "w - w",
-            "user_color": "w",
-            "moves_list": [
-                "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -",
-                "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR/ b KQkq e3",
-                "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR/ w KQkq e6",
-                "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R/ b KQkq -"
+            "notations_list": [
+                "e4",
+                "e5",
+                "Nf3",
+                "Nf6"
             ],
-            "next_review": "2024-07-12T02:35:04",
+            "next_review": "2024-07-22T23:12:22",
             "interval": 1,
             "ease": 2.5,
-            "current_step": 2,
-            "type": "learning"
-        },
-        {
-            "name": "b - b",
-            "user_color": "b",
-            "moves_list": [
-                "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -",
-                "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq e3",
-                "RNBKQBNR/PPP1PPPP/8/3P4/3p4/8/ppp1pppp/rnbkqbnr/ w KQkq e6",
-                "R1BKQBNR/PPP1PPPP/2N5/3P4/3p4/8/ppp1pppp/rnbkqbnr/ b KQkq -",
-                "R1BKQBNR/PPP1PPPP/2N5/3P4/3p4/2n5/ppp1pppp/r1bkqbnr/ w KQkq -"
-            ],
-            "next_review": "2024-07-12T02:35:10",
-            "interval": 1,
-            "ease": 2.5,
-            "current_step": 2,
-            "type": "learning"
-        },
-        {
-            "name": "b - w",
-            "user_color": "b",
-            "moves_list": [
-                "rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -",
-                "RNBKQBNR/PPP1PPPP/8/3P4/8/8/pppppppp/rnbkqbnr/ b KQkq e3",
-                "RNBKQBNR/PPP1PPPP/8/3P4/3p4/8/ppp1pppp/rnbkqbnr/ w KQkq e6",
-                "R1BKQBNR/PPP1PPPP/2N5/3P4/3p4/8/ppp1pppp/rnbkqbnr/ b KQkq -"
-            ],
-            "next_review": "2024-07-12T02:35:13",
-            "interval": 1,
-            "ease": 2.5,
-            "current_step": 2,
+            "current_step": 0,
             "type": "learning"
         }
     ]

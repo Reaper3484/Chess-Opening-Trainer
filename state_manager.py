@@ -25,6 +25,11 @@ class StateManager:
         match self.state:
             case AppState.TRAINING:
                 if not self.trainer.is_training_batch_finished:
+                    move_number = self.ui_manager.trainer.board.move_number
+                    if move_number % 2:
+                        self.ui_manager.trainer_moves_display.add_item([move_notation])
+                    else:
+                        self.ui_manager.trainer_moves_display.items[move_number // 2 - 1].append(move_notation) 
                     self.trainer.train()
 
             case AppState.ADD_OPENING:
@@ -33,9 +38,18 @@ class StateManager:
                     self.ui_manager.moves_display.add_item([move_notation])
                 else:
                     self.ui_manager.moves_display.items[move_number // 2 - 1].append(move_notation) 
+
+    def add_trainer_move(self, move_notation):
+        move_number = self.ui_manager.trainer.board.move_number
+        if move_number % 2:
+            self.ui_manager.trainer_moves_display.add_item([move_notation])
+        else:
+            self.ui_manager.trainer_moves_display.items[move_number // 2 - 1].append(move_notation) 
     
     def board_undo(self):
         match self.state:
+            case AppState.TRAINING:
+                self.ui_manager.trainer_moves_display.delete_last_item()
             case AppState.ADD_OPENING:
                 self.ui_manager.moves_display.delete_last_item()
 

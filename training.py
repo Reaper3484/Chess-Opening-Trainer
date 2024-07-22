@@ -23,11 +23,12 @@ class Trainer:
         with open(DATA_FILE, 'w') as file:
             json.dump(self.opening_data, file, indent=4)
 
-    def add_new_opening(self, name, color, moves):
+    def add_new_opening(self, name, color, moves, notations):
         new_opening = {
             "name": name,
             "user_color": color,
             "moves_list": moves,
+            "notations_list" :notations,
             "next_review": self.scheduler.next_review_datetime(minutes=LEARNING_STEPS[0]),
             "interval": 1,
             "ease": 2.5,
@@ -45,6 +46,7 @@ class Trainer:
             self.is_training_batch_finished = False
             opening = self.today_training_batch.pop(0)
             self.moves_list = opening['moves_list']
+            self.notations_list = opening['notations_list']
             self.user_color = opening['user_color']
             self.board.reset_board(self.user_color)
             self.moves_list = self.moves_list.copy()
@@ -76,6 +78,7 @@ class Trainer:
             if piece: self.board.pieces_list.remove(piece)
 
         self.board.move_squares_list.append([self.board.get_square_index(squares[0]), self.board.get_square_index(squares[1])])
+        self.state_manager.add_trainer_move(self.notations_list[self.board.move_number - 1])
         self.board.update_move_squares()
     
     def show_correct_move(self):

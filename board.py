@@ -26,6 +26,7 @@ class Board:
         self.move_squares_list = []
         self.possible_moves_list = []
         self.hover_pos = None    
+        self.notations_list = []
         self.initialize_board()
         self.initialize_pieces()
         self.reset_board('w')
@@ -281,6 +282,7 @@ class Board:
         self.update_move_squares()
         self.move_squares_list = []
         self.move_squares = []
+        self.notations_list = []
     
     def undo(self):
         if self.move_number == len(self.moves_list) - 1 and self.move_number:
@@ -419,6 +421,7 @@ class Board:
                 self.colour_to_move = 'b' if self.colour_to_move == 'w' else 'w'
                 check = self.game_manager.update_legal_moves()
                 move_notation = self.get_algebraic_notation(piece, old_pos, new_pos, capture, check, castle)
+                self.notations_list.append(move_notation)
                 self.state_manager.move_made(move_notation)
                 
         if event.type == KEYDOWN:

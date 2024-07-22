@@ -446,9 +446,11 @@ class UIManager:
         ]
 
         self.trainer_main_text = Text(None, (4 * SQUARE_SIZE, 8 * SQUARE_SIZE + 40), font_size=70, text_color='black', bg_color=BUTTON_IDLE_COLOR)
+        self.trainer_moves_display = ScrollableList((8 * SQUARE_SIZE + 30, MENU_BUTTON_HEIGHT * 3 - 10),(TEXT_BOX_WIDTH, SQUARE_SIZE * 4))
 
         self.trainer_elements = [
             self.trainer_main_text,
+            self.trainer_moves_display,
             IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
                    (self.screen_width - SQUARE_SIZE // 2, 1 * MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
         ]
@@ -583,6 +585,7 @@ class UIManager:
         self.state_manager.set_state(AppState.QUIT)
 
     def train(self):
+        self.trainer_moves_display.clear_items()
         opening_name = self.trainer.train_next()
         self.trainer_main_text.set_text(opening_name)
 
@@ -630,7 +633,8 @@ class UIManager:
         name = self.new_opening_name.text
         moves = self.opening_adder_board.moves_list
         user_colour = self.opening_adder_board.user_colour
-        self.trainer.add_new_opening(name, user_colour, moves)
+        notations_list = self.opening_adder_board.notations_list
+        self.trainer.add_new_opening(name, user_colour, moves, notations_list) 
         self.reset_opening_view()
 
     def reset_opening_view(self):
