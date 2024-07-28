@@ -636,6 +636,7 @@ class UIManager:
         notations_list = self.opening_adder_board.notations_list
         self.trainer.add_new_opening(name, user_colour, moves, notations_list) 
         self.reset_opening_view()
+        self.train()
 
     def reset_opening_view(self):
         self.new_opening_name.set_text('')

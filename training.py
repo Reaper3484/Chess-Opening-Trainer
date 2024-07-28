@@ -98,14 +98,14 @@ class Trainer:
         self.save_data()
     
     def train(self):
-        if self.board.move_number == len(self.moves_list):
-            self.board.can_move = False
-            self.state_manager.get_user_response()
-            return
-
         user_move = self.board.moves_list[self.board.move_number]
         correct_move = self.moves_list[self.board.move_number - 1]
         if user_move == correct_move:
+            if self.board.move_number == len(self.moves_list):
+                self.board.can_move = False
+                self.state_manager.get_user_response()
+                return
+
             self.make_move()
             if self.board.move_number == len(self.moves_list):
                 self.board.can_move = False
