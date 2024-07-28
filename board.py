@@ -9,6 +9,7 @@ from chess_logic import GameManager
 class Board:
     def __init__(self, screen, state_manager, pos=(0, 0), padding=BUTTON_PADDING):
         self.screen = screen
+        self.control_down = False
         self.game_manager = GameManager(self, state_manager)
         self.state_manager = state_manager
         self.board_pos = pos
@@ -425,6 +426,9 @@ class Board:
                 self.state_manager.move_made(move_notation)
                 
         if event.type == KEYDOWN:
+            if event.key == K_LCTRL:
+                self.control_down = True
+
             if event.key == K_LEFT:
                 if self.move_number > 0:
                     self.move_number -= 1  
@@ -445,12 +449,16 @@ class Board:
                 if self.move_number == len(self.moves_list) - 1 :
                     self.can_move = True
             
-            elif event.key == K_z:
+            elif event.key == K_z and self.control_down:
                 match self.state_manager.state:
                     case AppState.TRAINING:
                         pass
                     case _:
                         self.undo()
+
+        if event.type == KEYUP:
+            if event.key == K_LCTRL:
+                self.control_down = False
 
 
 class Piece:
