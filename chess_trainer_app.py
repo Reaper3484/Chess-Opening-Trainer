@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from constants import *
-from ui import UIManager
+from ui_manager import UIManager
 from training import Trainer
 from state_manager import StateManager, AppState
 
