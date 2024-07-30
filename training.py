@@ -12,6 +12,7 @@ class Trainer:
         self.opening_data = self.load_opening_data()
         self.today_training_batch = self.scheduler.get_training_batch(self.opening_data['openings'])
         self.is_training_batch_finished = True
+        self.modified_squares = []
 
     def load_opening_data(self):
         data = {}
@@ -87,7 +88,7 @@ class Trainer:
         self.board.moves_list.append(fen)
 
         squares = self.board.get_positions_changed(number, number + 1)
-        sq1, sq2 = squares
+        sq1, sq2 = self.modified_squares = squares[:2]
         self.board.set_square_colour(sq1, PREV_CORRECT_SQUARE_COLOR)
         self.board.set_square_colour(sq2, NEXT_CORRECT_SQUARE_COLOR)
         self.board.moves_list.pop()
@@ -97,7 +98,12 @@ class Trainer:
         self.scheduler.schedule_opening(self.current_opening, self.today_training_batch)
         self.save_data()
     
+    def revert_modified_squares(self):
+        for sq in self.modified_squares:
+            self.board.set_square_colour(sq)
+
     def train(self):
+        self.revert_modified_squares()
         user_move = self.board.moves_list[self.board.move_number]
         correct_move = self.moves_list[self.board.move_number - 1]
         if user_move == correct_move:

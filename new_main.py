@@ -10,6 +10,8 @@ class ChessOpeningTrainerApp:
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption('Chess Opening Trainer')
+        icon = pygame.image.load(IMAGE_PATH + 'app_icon.png')
+        pygame.display.set_icon(icon)
         self.screen = pygame.display.set_mode()
         self.clock = pygame.time.Clock()
 
