@@ -399,10 +399,12 @@ class Board:
                 capture = ''
                 castle = ''
                 piece = self.get_piece_on_pos(new_pos)
+                highlight_pos = new_pos
                 if piece and piece.colour != self.colour_to_move: 
                     self.pieces_list.remove(piece) 
                     capture = 'x'
                 elif piece and piece.colour == self.colour_to_move:
+                    highlight_pos = piece.get_position()
                     new_pos, castle = self.game_manager.castle(Piece.picked, piece)
 
                 Piece.picked.update_position(new_pos)
@@ -415,7 +417,7 @@ class Board:
                 Piece.picked = None
                 self.possible_moves_list = []
                 self.hover_pos = None
-                self.move_squares_list.append([old_pos, new_pos])
+                self.move_squares_list.append([old_pos, highlight_pos])
                 self.move_number += 1
                 self.update_move_squares()
                 self.moves_list.append(self.generate_fen())
