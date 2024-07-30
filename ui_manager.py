@@ -19,13 +19,11 @@ class UIManager:
     def initialize(self):
         self.main_menu_elements = [
             Button('Train Today', self.open_training_view, 
-                   (self.screen_width // 2, self.screen_height // 2 - 3 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
+                   (self.screen_width // 2, self.screen_height // 2 - 2 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             Button('Add Opening', self.open_add_opening_view, 
-                   (self.screen_width // 2, self.screen_height // 2 - 1 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
+                   (self.screen_width // 2, self.screen_height // 2), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             Button('Practice', self.open_practice_view, 
-                   (self.screen_width // 2, self.screen_height // 2 + 1 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
-            Button('Settings', self.train, 
-                   (self.screen_width // 2, self.screen_height // 2 + 3 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
+                   (self.screen_width // 2, self.screen_height // 2 + 2 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             IconButton(IMAGE_PATH + 'exit_icon.png', self.exit_application, 
                    (SQUARE_SIZE, self.screen_height - SQUARE_SIZE), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
         ]
@@ -59,16 +57,12 @@ class UIManager:
                                              (SQUARE_SIZE - 40, SQUARE_SIZE - 40))
 
         self.opening_adder_elements = [
-            self.fen_text_box,
-            self.valid_fen_icon,
             self.moves_display,
             self.new_opening_name,
             self.add_opening_button,
             self.opening_adder_flip,
             IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
                    (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
-            IconButton(IMAGE_PATH + 'paste_icon.png', self.paste_fen, 
-                   (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT * 2 + 10), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
             Button('Cancel', self.reset_opening_view, (11 * SQUARE_SIZE, 7 * SQUARE_SIZE), (220, 80))
         ]
 
