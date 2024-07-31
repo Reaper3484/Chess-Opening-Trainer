@@ -293,6 +293,7 @@ class Board:
 
             self.move_squares_list.pop()
             self.moves_list.pop()
+            self.notations_list.pop()
             self.update_move_squares()
             self.state_manager.board_undo()
 

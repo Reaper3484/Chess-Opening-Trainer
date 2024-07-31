@@ -4,14 +4,15 @@ from constants import *
 
 
 class ScrollableList:
-    def __init__(self, pos, size, font=None, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
+    def __init__(self, pos, size, columns, font=None, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
         self.rect = pygame.Rect(pos, size)
-        self.font = pygame.font.Font(font, 60)
+        self.font = pygame.font.Font(font, 80)
         self.font_color = font_color
         self.bg_color = bg_color
         self.items = []
         self.scroll_offset = 0
         self.max_visible_items = self.rect.height // self.font.get_height()
+        self.columns = columns
         
         self.scrollbar_width = 20
         self.scrollbar_color = (150, 150, 150)
@@ -61,13 +62,13 @@ class ScrollableList:
         pygame.draw.rect(screen, self.bg_color, self.rect)
         
         visible_items = self.items[self.scroll_offset:self.scroll_offset + self.max_visible_items]
-        column_width = self.rect.width // 2
+        column_width = self.rect.width // self.columns 
 
         for i, item in enumerate(visible_items):
             for j, element in enumerate(item):
                 text_surface = self.font.render(str(element), True, self.font_color)
                 x = self.rect.x + j * column_width
-                y = self.rect.y + i * self.font.get_height()
+                y = self.rect.y + i * (self.font.get_height() + 2)
                 screen.blit(text_surface, (x, y))
 
         if self.scrollbar_visible:
@@ -86,6 +87,45 @@ class ScrollableList:
     def update(self):
         pass
 
+
+class ClickableList(ScrollableList):
+    def __init__(self, pos, size, columns, item_callback, font=None, font_color=(0, 0, 0), bg_color=(255, 255, 255)):
+        super().__init__(pos, size, columns, font, font_color, bg_color)
+        self.item_callback = item_callback
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.scrollbar_visible and self.scrollbar_rect.collidepoint(event.pos):
+                self.scrollbar_dragging = True
+                self.scrollbar_drag_y = event.pos[1] - self.scrollbar_rect.y
+            else:
+                self.handle_item_click(event.pos)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.scrollbar_dragging = False
+        elif event.type == pygame.MOUSEMOTION:
+            if self.scrollbar_dragging:
+                new_y = event.pos[1] - self.scrollbar_drag_y
+                self.scrollbar_rect.y = max(self.rect.top, min(new_y, self.rect.bottom - self.scrollbar_rect.height))
+                self.scroll_offset = int((self.scrollbar_rect.y - self.rect.top) / (self.rect.height - self.scrollbar_rect.height) * (len(self.items) - self.max_visible_items))
+                self.scroll_offset = max(0, min(self.scroll_offset, len(self.items) - self.max_visible_items))
+
+    def handle_item_click(self, pos):
+        column_width = self.rect.width // self.columns
+        for i, item in enumerate(self.items[self.scroll_offset:self.scroll_offset + self.max_visible_items]):
+            for j, element in enumerate(item):
+                item_rect = pygame.Rect(
+                    self.rect.x + j * column_width,
+                    self.rect.y + i * self.font.get_height(),
+                    column_width,
+                    self.font.get_height()
+                )
+                if item_rect.collidepoint(pos):
+                    self.on_item_click(i + self.scroll_offset, j)
+                    return
+
+    def on_item_click(self, row, column):
+        print(f"Item clicked at row {row}, column {column}")
+        self.item_callback()
 
 
 class TextBox:

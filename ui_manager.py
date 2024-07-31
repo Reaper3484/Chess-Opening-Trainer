@@ -31,7 +31,7 @@ class UIManager:
         ]
 
         self.trainer_main_text = Text(None, (4 * SQUARE_SIZE, 8 * SQUARE_SIZE + 40), font_size=70, text_color='black', bg_color=BUTTON_IDLE_COLOR)
-        self.trainer_moves_display = ScrollableList((8 * SQUARE_SIZE + 30, MENU_BUTTON_HEIGHT * 3 - 10),(TEXT_BOX_WIDTH, SQUARE_SIZE * 4))
+        self.trainer_moves_display = ScrollableList((8 * SQUARE_SIZE + 30, MENU_BUTTON_HEIGHT * 3 - 10), (TEXT_BOX_WIDTH, SQUARE_SIZE * 4), 2)
 
         self.trainer_elements = [
             self.trainer_main_text,
@@ -49,15 +49,19 @@ class UIManager:
                    (6 * SQUARE_SIZE, 9 * SQUARE_SIZE), (170, 80), GOOD_IDLE_COLOR, GOOD_HOVER_COLOR, GOOD_PRESSED_COLOR, BUTTON_INACTIVE_COLOR, GOOD_SHADOW_COLOR, is_active=False),
         ]
 
+        self.openings_list = ClickableList((20, MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, 10 * MENU_BUTTON_HEIGHT), 1, self.display_opening_info)
+        [self.openings_list.add_item([item['name']]) for item in self.trainer.opening_data['openings']]
         self.opening_manager_elements = [
+            self.openings_list,
+            Button('Add opening', self.open_add_opening_view, (20 + MENU_BUTTON_LENGTH // 2, 12 * MENU_BUTTON_HEIGHT), 
+                   (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
-                   (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
+                   (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40))
         ]
-
 
         self.fen_text_box = TextBox((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT * 2 + 10), TEXT_BOX_WIDTH, MENU_BUTTON_HEIGHT, self.validate_fen)
         self.valid_fen_icon = Icon(None, (14 * SQUARE_SIZE - 60, MENU_BUTTON_HEIGHT * 2 - 20), (MENU_BUTTON_HEIGHT - 30, MENU_BUTTON_HEIGHT - 30))
-        self.moves_display = ScrollableList((8 * SQUARE_SIZE + 30, MENU_BUTTON_HEIGHT * 3 - 10), (TEXT_BOX_WIDTH, SQUARE_SIZE * 4))
+        self.moves_display = ScrollableList((8 * SQUARE_SIZE + 30, MENU_BUTTON_HEIGHT * 3 - 10), (TEXT_BOX_WIDTH, SQUARE_SIZE * 4), 2)
         self.new_opening_name = TextBox((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT), TEXT_BOX_WIDTH, MENU_BUTTON_HEIGHT)
         self.add_opening_button = Button('Add', self.add_opening, (9 * SQUARE_SIZE, 7 * SQUARE_SIZE), (170, 80), is_active=False)
         self.opening_adder_flip = IconButton(IMAGE_PATH + 'flip_icon.png', self.flip, 
@@ -71,7 +75,7 @@ class UIManager:
             self.new_opening_name,
             self.add_opening_button,
             self.opening_adder_flip,
-            IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
+            IconButton(IMAGE_PATH + 'back_icon.png', self.open_opening_manager_view, 
                    (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
             IconButton(IMAGE_PATH + 'paste_icon.png', self.paste_fen, 
                    (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT * 2 + 10), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
@@ -243,9 +247,13 @@ class UIManager:
         self.trainer.add_new_opening(name, user_colour, moves, notations_list) 
         self.reset_opening_view()
         self.train()
+        self.openings_list.add_item([name])
 
     def reset_opening_view(self):
         self.new_opening_name.set_text('')
         self.opening_adder_board.reset_board('w')
         self.opening_adder_flip.set_active(True)
         self.moves_display.clear_items()
+
+    def display_opening_info(self):
+        pass
