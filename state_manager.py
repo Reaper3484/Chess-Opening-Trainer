@@ -2,10 +2,11 @@ class AppState:
     QUIT = 0
     MAIN_MENU = 1
     TRAINING = 2
-    ADD_OPENING = 3
-    PRACTICE = 4
-    REVIEW = 5
-    SETTINGS = 6
+    OPENING_MANAGER = 3
+    ADD_OPENING = 4
+    PRACTICE = 5
+    REVIEW = 6
+    SETTINGS = 7
 
 
 class StateManager:

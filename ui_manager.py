@@ -20,7 +20,7 @@ class UIManager:
         self.main_menu_elements = [
             Button('Train Today', self.open_training_view, 
                    (self.screen_width // 2, self.screen_height // 2 - 3 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
-            Button('Add Opening', self.open_add_opening_view, 
+            Button('Opening Manager', self.open_opening_manager_view, 
                    (self.screen_width // 2, self.screen_height // 2 - 1 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
             Button('Practice', self.open_practice_view, 
                    (self.screen_width // 2, self.screen_height // 2 + 1 * MENU_BUTTON_HEIGHT), (MENU_BUTTON_LENGTH, MENU_BUTTON_HEIGHT)),
@@ -48,6 +48,12 @@ class UIManager:
             Button('Good', self.set_response_good, 
                    (6 * SQUARE_SIZE, 9 * SQUARE_SIZE), (170, 80), GOOD_IDLE_COLOR, GOOD_HOVER_COLOR, GOOD_PRESSED_COLOR, BUTTON_INACTIVE_COLOR, GOOD_SHADOW_COLOR, is_active=False),
         ]
+
+        self.opening_manager_elements = [
+            IconButton(IMAGE_PATH + 'back_icon.png', self.open_main_menu, 
+                   (self.screen_width - SQUARE_SIZE // 2, MENU_BUTTON_HEIGHT), (SQUARE_SIZE - 40, SQUARE_SIZE - 40)),
+        ]
+
 
         self.fen_text_box = TextBox((11 * SQUARE_SIZE + 20, MENU_BUTTON_HEIGHT * 2 + 10), TEXT_BOX_WIDTH, MENU_BUTTON_HEIGHT, self.validate_fen)
         self.valid_fen_icon = Icon(None, (14 * SQUARE_SIZE - 60, MENU_BUTTON_HEIGHT * 2 - 20), (MENU_BUTTON_HEIGHT - 30, MENU_BUTTON_HEIGHT - 30))
@@ -105,6 +111,10 @@ class UIManager:
                 for element in self.opening_adder_elements:
                     element.handle_event(event)
 
+            case AppState.OPENING_MANAGER:
+                for element in self.opening_manager_elements:
+                    element.handle_event(event)
+
             case AppState.PRACTICE:
                 self.practice_board.handle_event(event)
                 for element in self.practice_elements:
@@ -133,6 +143,10 @@ class UIManager:
                 for element in self.practice_elements:
                     element.draw(self.screen)
 
+            case AppState.OPENING_MANAGER:
+                for element in self.opening_manager_elements:
+                    element.draw(self.screen)
+    
             case _:
                 for element in self.main_menu_elements:
                     element.draw(self.screen)
@@ -148,6 +162,10 @@ class UIManager:
             case AppState.TRAINING:
                 pass
 
+            case AppState.OPENING_MANAGER:
+                for element in self.opening_manager_elements:
+                    element.update()
+
             case AppState.ADD_OPENING:
                 for element in self.opening_adder_elements:
                     element.update()
@@ -159,6 +177,9 @@ class UIManager:
         self.state_manager.set_state(AppState.TRAINING)
         if self.trainer.is_training_batch_finished:
             self.train()
+
+    def open_opening_manager_view(self):
+        self.state_manager.set_state(AppState.OPENING_MANAGER)
 
     def open_add_opening_view(self):
         self.state_manager.set_state(AppState.ADD_OPENING)
