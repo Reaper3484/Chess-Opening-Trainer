@@ -1,3 +1,8 @@
+import os
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 SQUARE_SIZE = 127
 
 START_POSITION_FEN_W = 'rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w KQkq -'
@@ -19,14 +24,14 @@ BUTTON_PRESSED_COLOR = 'grey'
 BUTTON_INACTIVE_COLOR = 'dark grey'
 BUTTON_SHADOW_COLOR = (100, 100, 100)
 
-IMAGE_PATH = 'graphics/'
+IMAGE_PATH = os.path.join(BASE_DIR, "graphics/")
 CHESS_PIECES_PATH = IMAGE_PATH + 'Chess-pieces/'
 
 FONT = None
 FONT_SIZE = 90
 FONT_COLOR = '#231f20'
 
-DATA_FILE = 'opening_data.json'
+DATA_FILE = os.path.join(BASE_DIR, 'opening_data.json')
 
 FRAME_RATE = 300
 MOVE_ANIMATION_DURATION = FRAME_RATE // 3

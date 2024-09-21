@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-from constants import *
+from config import *
 from state_manager import AppState
 import math
 from chess_logic import GameManager

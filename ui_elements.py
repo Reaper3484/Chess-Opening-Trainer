@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-from constants import *
+from config import *
 
 
 class ScrollableList:

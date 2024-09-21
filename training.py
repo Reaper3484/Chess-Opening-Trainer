@@ -1,5 +1,5 @@
 import json
-from constants import *
+from config import *
 from datetime import datetime, timedelta
 from board import Board
 

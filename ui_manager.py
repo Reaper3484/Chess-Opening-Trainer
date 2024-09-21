@@ -1,6 +1,6 @@
 import pyperclip
 from  pygame.locals import *
-from constants import *
+from config import *
 from state_manager import AppState
 from board import Board
 from ui_elements import *
